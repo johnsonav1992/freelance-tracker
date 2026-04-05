@@ -25,14 +25,18 @@ export const ProjectShowPage =
 	}) => {
 		const effectiveRate = project.rateOverride ?? client.hourlyRate;
 		const finishedEntries = entries.filter((e) => e.endedAt !== null);
-		const totalMs = finishedEntries.reduce(
+		const trackedMs = finishedEntries.reduce(
 			(sum, e) => sum + ((e.endedAt ?? 0) - e.startedAt),
 			0,
 		);
-		const totalAmount = finishedEntries.reduce((sum, e) => {
+		const totalMs = trackedMs + (project.manualHours ?? 0) * 3600000;
+		const trackedAmount = finishedEntries.reduce((sum, e) => {
 			const hours = ((e.endedAt ?? 0) - e.startedAt) / 3600000;
 			return sum + hours * effectiveRate;
 		}, 0);
+		const totalAmount =
+			project.manualAmount ??
+			trackedAmount + (project.manualHours ?? 0) * effectiveRate;
 
 		return (
 			<Layout
@@ -295,7 +299,7 @@ export const ProjectShowPage =
 													action={routes.time.destroy.href({
 														entryId: entry.id,
 													})}
-													mix={css({ display: 'inline' })}
+													class="form-contents"
 												>
 													<button
 														type="submit"

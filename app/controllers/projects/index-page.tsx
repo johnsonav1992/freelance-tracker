@@ -219,7 +219,7 @@ export const ProjectsIndexPage =
 												action={routes.projects.destroy.href({
 													projectId: project.id,
 												})}
-												mix={css({ display: 'inline' })}
+												class="form-contents"
 											>
 												<button
 													type="submit"

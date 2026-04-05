@@ -51,4 +51,5 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: #888; margin
 .badge-draft { background: #292524; color: #a8a29e; }
 .badge-sent { background: #1c2a4a; color: #818cf8; }
 .badge-paid { background: #14532d; color: #4ade80; }
+.form-contents { display: contents; }
 `;

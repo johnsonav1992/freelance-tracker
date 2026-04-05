@@ -27,6 +27,8 @@ export const projects = table({
 		description: c.text().nullable(),
 		status: c.text().notNull(),
 		rateOverride: c.decimal(10, 2).nullable(),
+		manualHours: c.decimal(10, 2).nullable(),
+		manualAmount: c.decimal(10, 2).nullable(),
 		createdAt: c.integer().notNull(),
 		updatedAt: c.integer().notNull(),
 	},
@@ -70,14 +72,14 @@ export const invoices = table({
 	},
 });
 
-export const clientProjects = hasMany(clients, projects);
-export const clientInvoices = hasMany(clients, invoices);
-export const projectClient = belongsTo(projects, clients);
-export const projectEntries = hasMany(projects, timeEntries);
-export const entryProject = belongsTo(timeEntries, projects);
-export const entryInvoice = belongsTo(timeEntries, invoices);
-export const invoiceEntries = hasMany(invoices, timeEntries);
-export const invoiceClient = belongsTo(invoices, clients);
+export const clientProjects = hasMany(clients, projects, { foreignKey: 'clientId' });
+export const clientInvoices = hasMany(clients, invoices, { foreignKey: 'clientId' });
+export const projectClient = belongsTo(projects, clients, { foreignKey: 'clientId' });
+export const projectEntries = hasMany(projects, timeEntries, { foreignKey: 'projectId' });
+export const entryProject = belongsTo(timeEntries, projects, { foreignKey: 'projectId' });
+export const entryInvoice = belongsTo(timeEntries, invoices, { foreignKey: 'invoiceId' });
+export const invoiceEntries = hasMany(invoices, timeEntries, { foreignKey: 'invoiceId' });
+export const invoiceClient = belongsTo(invoices, clients, { foreignKey: 'clientId' });
 
 export type Client = TableRow<typeof clients>;
 export type Project = TableRow<typeof projects>;

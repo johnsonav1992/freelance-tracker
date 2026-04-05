@@ -203,7 +203,7 @@ export const TimeIndexPage =
 										<RestfulForm
 											method="DELETE"
 											action={routes.time.destroy.href({ entryId: entry.id })}
-											mix={css({ display: 'inline' })}
+											class="form-contents"
 										>
 											<button
 												type="submit"

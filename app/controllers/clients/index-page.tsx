@@ -182,11 +182,7 @@ export const ClientsIndexPage =
 										>
 											<a
 												href={routes.clients.edit.href({ clientId: client.id })}
-												class="btn btn-secondary"
-												mix={css({
-													fontSize: '0.8rem',
-													padding: '0.25rem 0.625rem',
-												})}
+												class="btn btn-secondary btn-sm"
 											>
 												Edit
 											</a>
@@ -195,15 +191,11 @@ export const ClientsIndexPage =
 												action={routes.clients.destroy.href({
 													clientId: client.id,
 												})}
-												mix={css({ display: 'inline' })}
+												class="form-contents"
 											>
 												<button
 													type="submit"
-													class="btn btn-danger"
-													mix={css({
-														fontSize: '0.8rem',
-														padding: '0.25rem 0.625rem',
-													})}
+													class="btn btn-danger btn-sm"
 												>
 													Delete
 												</button>

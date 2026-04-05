@@ -219,7 +219,7 @@ export const InvoicesIndexPage =
 												action={routes.invoices.destroy.href({
 													invoiceId: invoice.id,
 												})}
-												mix={css({ display: 'inline' })}
+												class="form-contents"
 											>
 												<button
 													type="submit"

@@ -23,6 +23,8 @@ const projectSchema = f.object({
 	description: f.field(s.optional(s.string())),
 	status: f.field(s.defaulted(s.string(), 'active')),
 	rateOverride: f.field(s.optional(s.string())),
+	manualHours: f.field(s.optional(s.string())),
+	manualAmount: f.field(s.optional(s.string())),
 });
 
 export default {
@@ -33,6 +35,7 @@ export default {
 				orderBy: ['name', 'asc'],
 				with: { client: projectClient },
 			});
+			console.dir({allProjects}, { depth: null });
 
 			const typed = allProjects.filter(
 				(
@@ -65,10 +68,8 @@ export default {
 		async create({ get }) {
 			const db = get(Database);
 			const formData = get(FormData);
-			const { clientId, name, description, status, rateOverride } = s.parse(
-				projectSchema,
-				formData,
-			);
+			const { clientId, name, description, status, rateOverride, manualHours, manualAmount } =
+				s.parse(projectSchema, formData);
 			const now = Date.now();
 
 			await db.create(projects, {
@@ -77,6 +78,8 @@ export default {
 				description: description || null,
 				status,
 				rateOverride: rateOverride ? parseFloat(rateOverride) : null,
+				manualHours: manualHours ? parseFloat(manualHours) : null,
+				manualAmount: manualAmount ? parseFloat(manualAmount) : null,
 				createdAt: now,
 				updatedAt: now,
 			});
@@ -159,10 +162,8 @@ export default {
 				return new Response('Project not found', { status: 404 });
 			}
 
-			const { clientId, name, description, status, rateOverride } = s.parse(
-				projectSchema,
-				formData,
-			);
+			const { clientId, name, description, status, rateOverride, manualHours, manualAmount } =
+				s.parse(projectSchema, formData);
 
 			await db.update(projects, project.id, {
 				clientId: parseInt(clientId, 10),
@@ -170,6 +171,8 @@ export default {
 				description: description || null,
 				status,
 				rateOverride: rateOverride ? parseFloat(rateOverride) : null,
+				manualHours: manualHours ? parseFloat(manualHours) : null,
+				manualAmount: manualAmount ? parseFloat(manualAmount) : null,
 				updatedAt: Date.now(),
 			});
 

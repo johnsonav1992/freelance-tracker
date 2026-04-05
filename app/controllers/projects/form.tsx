@@ -134,6 +134,32 @@ export const ProjectFormPage =
 								placeholder="Leave blank to use client rate"
 							/>
 						</div>
+
+						<div class="form-group">
+							<label for="manualHours">Manual Hours (optional)</label>
+							<input
+								type="number"
+								id="manualHours"
+								name="manualHours"
+								step="0.01"
+								min="0"
+								value={project?.manualHours ?? ''}
+								placeholder="Hours worked before tracking in this app"
+							/>
+						</div>
+
+						<div class="form-group">
+							<label for="manualAmount">Manual Amount Override (optional)</label>
+							<input
+								type="number"
+								id="manualAmount"
+								name="manualAmount"
+								step="0.01"
+								min="0"
+								value={project?.manualAmount ?? ''}
+								placeholder="Fixed total — overrides hours × rate"
+							/>
+						</div>
 					</div>
 
 					<div

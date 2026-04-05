@@ -30,4 +30,5 @@ app.ready().catch((error: unknown) => {
 	console.error('App boot failed:', error);
 });
 
+export { RestfulForm } from '../ui/RestfulForm.tsx';
 export { Timer } from './timer.tsx';
