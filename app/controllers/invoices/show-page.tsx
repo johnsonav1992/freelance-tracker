@@ -2,8 +2,8 @@ import { css } from 'remix/component';
 
 import type { Client, Invoice, Project, TimeEntry } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
-import { Layout } from '../../ui/layout.tsx';
-import { RestfulForm } from '../../ui/restful-form.tsx';
+import { Layout } from '../../ui/Layout.tsx';
+import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import {
 	formatCurrency,
 	formatDate,

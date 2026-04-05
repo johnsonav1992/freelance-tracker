@@ -2,7 +2,7 @@ import { css } from 'remix/component';
 import { Timer } from '../../assets/timer.tsx';
 import type { Client, Invoice, Project, TimeEntry } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
-import { Layout } from '../../ui/layout.tsx';
+import { Layout } from '../../ui/Layout.tsx';
 import { formatCurrency, formatDuration } from '../../utils/format.ts';
 
 export interface DashboardPageProps {

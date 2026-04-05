@@ -9,6 +9,7 @@
 		"build": "tsc --noEmit && npm run build:browser",
 		"build:browser": "esbuild app/assets/entry.tsx --outdir=public/assets --bundle --format=esm --minify",
 		"start": "tsx server.ts",
+		"format": "biome format .",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write ."
 	},

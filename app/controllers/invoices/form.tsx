@@ -1,7 +1,7 @@
 import { css } from 'remix/component';
 
 import type { Client, Project, TimeEntry } from '../../data/schema.ts';
-import { Layout } from '../../ui/layout.tsx';
+import { Layout } from '../../ui/Layout.tsx';
 import { formatCurrency, formatDuration } from '../../utils/format.ts';
 
 export interface InvoiceFormPageProps {

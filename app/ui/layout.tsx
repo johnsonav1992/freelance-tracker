@@ -2,7 +2,7 @@ import type { RemixNode } from 'remix/component';
 import { css } from 'remix/component';
 
 import { routes } from '../routes.ts';
-import { Document } from './document.tsx';
+import { Document } from './Document.tsx';
 
 export interface LayoutProps {
 	title?: string;
