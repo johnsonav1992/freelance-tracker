@@ -1,5 +1,6 @@
 import type { Client, Project } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { PageHeader } from '../../ui/Screen.tsx';
@@ -26,8 +27,8 @@ export const ProjectFormPage = () => {
 		>
 			<PageHeader
 				eyebrow="Projects"
-				title={project ? 'Edit project' : 'Create a project'}
-				subtitle="Set the client, status, and any pricing overrides. Everything else in the app builds from this."
+				title={project ? 'Edit project' : 'New project'}
+				subtitle="Client, status, rate, and optional manual carry-over."
 			/>
 
 			<div class="form-card">
@@ -41,20 +42,18 @@ export const ProjectFormPage = () => {
 							<select
 								id="clientId"
 								name="clientId"
+								defaultValue={
+									project
+										? String(project.clientId)
+										: defaultClientId
+											? String(defaultClientId)
+											: ''
+								}
 								required
 							>
 								<option value="">Select a client…</option>
 								{clients.map((client) => (
-									<option
-										value={client.id}
-										selected={
-											project
-												? project.clientId === client.id
-												: defaultClientId === client.id
-										}
-									>
-										{client.name}
-									</option>
+									<option value={client.id}>{client.name}</option>
 								))}
 							</select>
 						</div>
@@ -65,7 +64,7 @@ export const ProjectFormPage = () => {
 								type="text"
 								id="name"
 								name="name"
-								value={project?.name}
+								defaultValue={project?.name}
 								required
 								placeholder="Website refresh"
 							/>
@@ -77,10 +76,9 @@ export const ProjectFormPage = () => {
 								id="description"
 								name="description"
 								rows={4}
+								defaultValue={project?.description ?? ''}
 								placeholder="What is this project, and what kind of work does it cover?"
-							>
-								{project?.description ?? ''}
-							</textarea>
+							/>
 						</div>
 
 						<div class="field-grid">
@@ -89,26 +87,12 @@ export const ProjectFormPage = () => {
 								<select
 									id="status"
 									name="status"
+									defaultValue={project?.status ?? 'active'}
 									required
 								>
-									<option
-										value="active"
-										selected={!project || project.status === 'active'}
-									>
-										Active
-									</option>
-									<option
-										value="paused"
-										selected={project?.status === 'paused'}
-									>
-										Paused
-									</option>
-									<option
-										value="done"
-										selected={project?.status === 'done'}
-									>
-										Done
-									</option>
+									<option value="active">Active</option>
+									<option value="paused">Paused</option>
+									<option value="done">Done</option>
 								</select>
 							</div>
 
@@ -120,7 +104,7 @@ export const ProjectFormPage = () => {
 									name="rateOverride"
 									step="0.01"
 									min="0"
-									value={project?.rateOverride ?? ''}
+									defaultValue={project?.rateOverride ?? ''}
 									placeholder="Leave blank to use client rate"
 								/>
 							</div>
@@ -135,7 +119,7 @@ export const ProjectFormPage = () => {
 									name="manualHours"
 									step="0.01"
 									min="0"
-									value={project?.manualHours ?? ''}
+									defaultValue={project?.manualHours ?? ''}
 									placeholder="Hours done before tracking here"
 								/>
 							</div>
@@ -148,15 +132,14 @@ export const ProjectFormPage = () => {
 									name="manualAmount"
 									step="0.01"
 									min="0"
-									value={project?.manualAmount ?? ''}
+									defaultValue={project?.manualAmount ?? ''}
 									placeholder="Optional fixed amount"
 								/>
 							</div>
 						</div>
 
 						<div class="field-hint">
-							Use manual values only when some work happened before you started
-							tracking this project in the app.
+							Use manual values only for work tracked outside this app.
 						</div>
 
 						<div class="form-actions">
@@ -166,12 +149,12 @@ export const ProjectFormPage = () => {
 							>
 								{project ? 'Save changes' : 'Create project'}
 							</button>
-							<a
+							<AppLink
 								href={routes.projects.index.href()}
 								class="btn btn-secondary"
 							>
 								Cancel
-							</a>
+							</AppLink>
 						</div>
 					</div>
 				</RestfulForm>

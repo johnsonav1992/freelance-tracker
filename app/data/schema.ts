@@ -44,10 +44,33 @@ export const timeEntries = table({
 			.references('projects', 'id', 'time_entries_projectId_fk')
 			.onDelete('restrict'),
 		description: c.text().nullable(),
+		taskId: c
+			.integer()
+			.nullable()
+			.references('project_tasks', 'id', 'time_entries_taskId_fk')
+			.onDelete('set null'),
 		startedAt: c.integer().notNull(),
 		endedAt: c.integer().nullable(),
 		billable: c.boolean().notNull(),
 		invoiceId: c.integer().nullable(),
+		createdAt: c.integer().notNull(),
+		updatedAt: c.integer().notNull(),
+	},
+});
+
+export const projectTasks = table({
+	name: 'project_tasks',
+	columns: {
+		id: c.integer().primaryKey().autoIncrement(),
+		projectId: c
+			.integer()
+			.notNull()
+			.references('projects', 'id', 'project_tasks_projectId_fk')
+			.onDelete('restrict'),
+		title: c.text().notNull(),
+		description: c.text().nullable(),
+		status: c.text().notNull(),
+		sortOrder: c.integer().notNull(),
 		createdAt: c.integer().notNull(),
 		updatedAt: c.integer().notNull(),
 	},
@@ -84,8 +107,20 @@ export const projectClient = belongsTo(projects, clients, {
 export const projectEntries = hasMany(projects, timeEntries, {
 	foreignKey: 'projectId',
 });
+export const projectTaskItems = hasMany(projects, projectTasks, {
+	foreignKey: 'projectId',
+});
 export const entryProject = belongsTo(timeEntries, projects, {
 	foreignKey: 'projectId',
+});
+export const entryTask = belongsTo(timeEntries, projectTasks, {
+	foreignKey: 'taskId',
+});
+export const taskProject = belongsTo(projectTasks, projects, {
+	foreignKey: 'projectId',
+});
+export const taskEntries = hasMany(projectTasks, timeEntries, {
+	foreignKey: 'taskId',
 });
 export const entryInvoice = belongsTo(timeEntries, invoices, {
 	foreignKey: 'invoiceId',
@@ -99,5 +134,6 @@ export const invoiceClient = belongsTo(invoices, clients, {
 
 export type Client = TableRow<typeof clients>;
 export type Project = TableRow<typeof projects>;
+export type ProjectTask = TableRow<typeof projectTasks>;
 export type TimeEntry = TableRow<typeof timeEntries>;
 export type Invoice = TableRow<typeof invoices>;

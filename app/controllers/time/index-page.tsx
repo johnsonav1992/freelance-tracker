@@ -1,6 +1,12 @@
 import { Timer } from '../../assets/timer.tsx';
-import type { Client, Project, TimeEntry } from '../../data/schema.ts';
+import type {
+	Client,
+	Project,
+	ProjectTask,
+	TimeEntry,
+} from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
@@ -15,9 +21,15 @@ export const TimeIndexPage = () => {
 		entries,
 		rateFor,
 	}: {
-		entries: (TimeEntry & { project: Project & { client: Client } })[];
+		entries: (TimeEntry & {
+			project: Project & { client: Client };
+			task: ProjectTask | null;
+		})[];
 		rateFor: (
-			entry: TimeEntry & { project: Project & { client: Client } },
+			entry: TimeEntry & {
+				project: Project & { client: Client };
+				task: ProjectTask | null;
+			},
 		) => number;
 	}) => (
 		<Layout
@@ -26,15 +38,15 @@ export const TimeIndexPage = () => {
 		>
 			<PageHeader
 				eyebrow="Time"
-				title="See every work session clearly."
-				subtitle="Track active timers, edit finished sessions, and keep billable work obvious."
+				title="Time log"
+				subtitle="Recent time entries and active timers."
 				actions={
-					<a
+					<AppLink
 						href={routes.time.new.href()}
 						class="btn btn-primary"
 					>
 						Log time
-					</a>
+					</AppLink>
 				}
 			/>
 
@@ -43,18 +55,18 @@ export const TimeIndexPage = () => {
 					title="No time entries yet"
 					description="Start a timer from a project or log a completed session manually."
 					action={
-						<a
+						<AppLink
 							href={routes.time.new.href()}
 							class="btn btn-primary"
 						>
 							Add first entry
-						</a>
+						</AppLink>
 					}
 				/>
 			) : (
 				<SectionCard
 					title={`${entries.length} time entr${entries.length === 1 ? 'y' : 'ies'}`}
-					subtitle="Newest work appears here first."
+					subtitle="Newest entries first."
 				>
 					<div class="list-stack">
 						{entries.map((entry) => {
@@ -67,13 +79,13 @@ export const TimeIndexPage = () => {
 								<div class="list-item">
 									<div class="list-item-primary">
 										<p class="list-item-title">
-											<a
+											<AppLink
 												href={routes.projects.show.href({
 													projectId: entry.project.id,
 												})}
 											>
 												{entry.project.name}
-											</a>
+											</AppLink>
 										</p>
 										<p class="list-item-text">
 											{entry.description || 'No work note added.'}
@@ -81,6 +93,12 @@ export const TimeIndexPage = () => {
 										<div class="meta-row">
 											<strong>{entry.project.client.name}</strong>
 											<span class="meta-dot" />
+											{entry.task && (
+												<>
+													<span>{entry.task.title}</span>
+													<span class="meta-dot" />
+												</>
+											)}
 											<span>{formatDate(entry.startedAt)}</span>
 											{entry.billable && (
 												<span class="meta-chip meta-chip-success">
@@ -117,12 +135,12 @@ export const TimeIndexPage = () => {
 											)}
 										</div>
 										<div class="inline-actions">
-											<a
+											<AppLink
 												href={routes.time.edit.href({ entryId: entry.id })}
 												class="btn btn-secondary btn-sm"
 											>
 												Edit
-											</a>
+											</AppLink>
 											<RestfulForm
 												method="DELETE"
 												action={routes.time.destroy.href({ entryId: entry.id })}

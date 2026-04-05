@@ -1,5 +1,12 @@
-import type { Client, Project, TimeEntry } from '../../data/schema.ts';
+import type {
+	Client,
+	Project,
+	ProjectTask,
+	TimeEntry,
+} from '../../data/schema.ts';
+import { routes } from '../../routes.ts';
 import { Layout } from '../../ui/Layout.tsx';
+import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
 import { formatCurrency, formatDuration } from '../../utils/format.ts';
 
@@ -8,7 +15,7 @@ export interface InvoiceFormPageProps {
 	unbilledByClient: Map<
 		number,
 		{
-			entries: (TimeEntry & { project: Project })[];
+			entries: (TimeEntry & { project: Project; task: ProjectTask | null })[];
 			totalMs: number;
 			totalAmount: number;
 		}
@@ -23,14 +30,14 @@ export const InvoiceFormPage = () => {
 		>
 			<PageHeader
 				eyebrow="Invoices"
-				title="Create an invoice from unbilled work."
-				subtitle="Each client below has finished billable time ready to group into a new invoice."
+				title="New invoice"
+				subtitle="Unbilled billable entries grouped by client."
 			/>
 
 			{clients.length === 0 ? (
 				<EmptyState
-					title="Nothing ready to invoice"
-					description="Once you finish billable time entries, they’ll show up here grouped by client."
+					title="No unbilled entries"
+					description="Finished billable entries will appear here by client."
 				/>
 			) : (
 				<div class="list-stack">
@@ -43,9 +50,9 @@ export const InvoiceFormPage = () => {
 								title={client.name}
 								subtitle={client.company || 'Independent client'}
 								actions={
-									<form
+									<RestfulForm
 										method="POST"
-										action="/invoices"
+										action={routes.invoices.create.href()}
 									>
 										<input
 											type="hidden"
@@ -58,7 +65,7 @@ export const InvoiceFormPage = () => {
 										>
 											Create invoice
 										</button>
-									</form>
+									</RestfulForm>
 								}
 								tone="tint"
 							>
@@ -95,8 +102,13 @@ export const InvoiceFormPage = () => {
 												<div class="list-item-primary">
 													<p class="list-item-title">{entry.project.name}</p>
 													<p class="list-item-text">
-														{entry.description || 'No work note added.'}
+														{entry.description || 'No description.'}
 													</p>
+													{entry.task && (
+														<div class="meta-row">
+															<span>{entry.task.title}</span>
+														</div>
+													)}
 												</div>
 												<div class="list-item-side">
 													<div class="value-block">

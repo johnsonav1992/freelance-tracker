@@ -1,5 +1,12 @@
-import type { Client, Invoice, Project, TimeEntry } from '../../data/schema.ts';
+import type {
+	Client,
+	Invoice,
+	Project,
+	ProjectTask,
+	TimeEntry,
+} from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { PageHeader, SectionCard } from '../../ui/Screen.tsx';
@@ -18,8 +25,10 @@ export const InvoiceShowPage = () => {
 	}: {
 		invoice: Invoice;
 		client: Client;
-		entries: (TimeEntry & { project: Project })[];
-		rateFor: (entry: TimeEntry & { project: Project }) => number;
+		entries: (TimeEntry & { project: Project; task: ProjectTask | null })[];
+		rateFor: (
+			entry: TimeEntry & { project: Project; task: ProjectTask | null },
+		) => number;
 	}) => {
 		const lineItems = entries.map((entry) => {
 			const ms = entry.endedAt !== null ? entry.endedAt - entry.startedAt : 0;
@@ -36,17 +45,17 @@ export const InvoiceShowPage = () => {
 				title={invoice.number}
 				activeNav="invoices"
 			>
-				<a
+				<AppLink
 					href={routes.invoices.index.href()}
 					class="breadcrumb"
 				>
 					← Back to invoices
-				</a>
+				</AppLink>
 
 				<PageHeader
 					eyebrow="Invoice"
 					title={invoice.number}
-					subtitle={`Billing ${client.name}`}
+					subtitle={client.name}
 					actions={
 						<>
 							<span class={`badge badge-${invoice.status}`}>
@@ -110,7 +119,7 @@ export const InvoiceShowPage = () => {
 				<div class="detail-grid">
 					<SectionCard
 						title="Bill to"
-						subtitle="Client details attached to this invoice."
+						subtitle="Client details."
 					>
 						<dl class="detail-list">
 							<div>
@@ -138,7 +147,7 @@ export const InvoiceShowPage = () => {
 
 					<SectionCard
 						title="Invoice details"
-						subtitle="Key dates and the total due."
+						subtitle="Status, dates, and total."
 						tone="tint"
 					>
 						<dl class="detail-list">
@@ -170,7 +179,7 @@ export const InvoiceShowPage = () => {
 
 				<SectionCard
 					title="Line items"
-					subtitle="Tracked work included on this invoice."
+					subtitle="Entries included on this invoice."
 				>
 					<div class="table-shell">
 						<table>
@@ -188,6 +197,9 @@ export const InvoiceShowPage = () => {
 										<td>
 											<div class="stack-sm">
 												<strong>{entry.project.name}</strong>
+												{entry.task && (
+													<span class="muted">{entry.task.title}</span>
+												)}
 												{entry.description && (
 													<span class="muted">{entry.description}</span>
 												)}
@@ -217,7 +229,7 @@ export const InvoiceShowPage = () => {
 				{invoice.notes && (
 					<SectionCard
 						title="Notes"
-						subtitle="Anything extra attached to this invoice."
+						subtitle="Invoice notes."
 					>
 						<p class="list-item-text">{invoice.notes}</p>
 					</SectionCard>

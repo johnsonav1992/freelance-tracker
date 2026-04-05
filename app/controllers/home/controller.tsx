@@ -52,8 +52,28 @@ export default {
 		const sentInvoices = await db.findMany(invoices, {
 			where: { status: 'sent' },
 		});
+		const sentInvoiceIds = new Set(sentInvoices.map((invoice) => invoice.id));
+		const sentInvoiceEntries = (
+			await db.findMany(timeEntries, {
+				where: { billable: true },
+			})
+		).filter(
+			(entry) =>
+				entry.invoiceId !== null &&
+				entry.endedAt !== null &&
+				sentInvoiceIds.has(entry.invoiceId),
+		);
+		const invoiceTotals = new Map<number, number>();
+		for (const entry of sentInvoiceEntries) {
+			const project = projectMap.get(entry.projectId);
+			const rate =
+				project?.rateOverride ?? clientRateMap.get(project?.clientId ?? 0) ?? 0;
+			const hours = ((entry.endedAt ?? 0) - entry.startedAt) / 3600000;
+			const current = invoiceTotals.get(entry.invoiceId ?? 0) ?? 0;
+			invoiceTotals.set(entry.invoiceId ?? 0, current + hours * rate);
+		}
 		const outstandingAmount = sentInvoices.reduce(
-			(sum, inv) => sum + ((inv as unknown as { total?: number }).total ?? 0),
+			(sum, invoice) => sum + (invoiceTotals.get(invoice.id) ?? 0),
 			0,
 		);
 

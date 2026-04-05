@@ -1,6 +1,7 @@
 import type { RemixNode } from 'remix/component';
 
 import { routes } from '../routes.ts';
+import { AppLink } from './AppLink.tsx';
 import { Document } from './Document.tsx';
 
 export interface LayoutProps {
@@ -15,26 +16,23 @@ export const Layout = () => {
 			<div class="app-shell">
 				<header class="app-header">
 					<div class="app-header-inner">
-						<a
+						<AppLink
 							href={routes.home.href()}
 							class="brand"
 						>
-							<div class="brand-mark">
-								<span>Freelance</span> Tracker
-							</div>
-							<div class="brand-copy">
-								Track work, keep projects moving, invoice fast.
-							</div>
-						</a>
+							<div class="brand-mark">Freelance Tracker</div>
+							<div class="brand-copy">Internal dashboard</div>
+						</AppLink>
 
 						<nav class="app-nav">
 							{navItems.map(({ href, label, id }) => (
-								<a
+								<AppLink
 									href={href}
 									class={`nav-link${activeNav === id ? ' nav-link-active' : ''}`}
+									ariaCurrent={activeNav === id ? 'page' : undefined}
 								>
 									{label}
-								</a>
+								</AppLink>
 							))}
 						</nav>
 					</div>

@@ -1,5 +1,6 @@
 import type { Client, Project } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
@@ -13,15 +14,15 @@ export const ProjectsIndexPage = () => {
 		>
 			<PageHeader
 				eyebrow="Projects"
-				title="Organize work by project."
-				subtitle="Projects tie clients, rates, and tracked time together so invoicing later stays straightforward."
+				title="Projects"
+				subtitle="Project status, client, and rate."
 				actions={
-					<a
+					<AppLink
 						href={routes.projects.new.href()}
 						class="btn btn-primary"
 					>
 						New project
-					</a>
+					</AppLink>
 				}
 			/>
 
@@ -30,31 +31,31 @@ export const ProjectsIndexPage = () => {
 					title="No projects yet"
 					description="Create a project after adding a client. That gives your time entries and invoices a proper home."
 					action={
-						<a
+						<AppLink
 							href={routes.projects.new.href()}
 							class="btn btn-primary"
 						>
 							Create project
-						</a>
+						</AppLink>
 					}
 				/>
 			) : (
 				<SectionCard
 					title={`${projects.length} project${projects.length === 1 ? '' : 's'}`}
-					subtitle="Rates inherit from the client unless you override them per project."
+					subtitle="Project rate overrides the client rate when set."
 				>
 					<div class="list-stack">
 						{projects.map((project) => (
 							<div class="list-item">
 								<div class="list-item-primary">
 									<p class="list-item-title">
-										<a
+										<AppLink
 											href={routes.projects.show.href({
 												projectId: project.id,
 											})}
 										>
 											{project.name}
-										</a>
+										</AppLink>
 									</p>
 									<p class="list-item-text">
 										{project.description || 'No project summary yet.'}
@@ -84,14 +85,14 @@ export const ProjectsIndexPage = () => {
 										)}
 									</div>
 									<div class="inline-actions">
-										<a
+										<AppLink
 											href={routes.projects.edit.href({
 												projectId: project.id,
 											})}
 											class="btn btn-secondary btn-sm"
 										>
 											Edit
-										</a>
+										</AppLink>
 										<RestfulForm
 											method="DELETE"
 											action={routes.projects.destroy.href({

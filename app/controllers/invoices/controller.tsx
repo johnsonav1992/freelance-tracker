@@ -10,6 +10,7 @@ import {
 	invoiceClient,
 	invoices,
 	projects,
+	projectTasks,
 	timeEntries,
 } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
@@ -71,11 +72,6 @@ export default {
 		async new({ get }) {
 			const db = get(Database);
 
-			const unbilledEntries = await db.findMany(timeEntries, {
-				where: { billable: true, invoiceId: null, endedAt: null },
-				with: { project: entryProject },
-			});
-
 			const finishedEntries = (
 				await db.findMany(timeEntries, {
 					where: { billable: true, invoiceId: null },
@@ -84,6 +80,7 @@ export default {
 			).filter((e) => e.endedAt !== null);
 
 			const allProjects = await db.findMany(projects);
+			const allTasks = await db.findMany(projectTasks);
 			const allClients = await db.findMany(clients, {
 				orderBy: ['name', 'asc'],
 			});
@@ -91,11 +88,18 @@ export default {
 				allClients.map((c) => [c.id, c.hourlyRate]),
 			);
 			const projectMap = new Map(allProjects.map((p) => [p.id, p]));
+			const taskMap = new Map(allTasks.map((task) => [task.id, task]));
 
-			const typedEntries = finishedEntries.filter(
-				(e): e is typeof e & { project: (typeof allProjects)[0] } =>
-					'project' in e && e.project !== null,
-			);
+			const typedEntries = finishedEntries.flatMap((entry) => {
+				if (!('project' in entry) || entry.project === null) return [];
+				return [
+					{
+						...entry,
+						project: entry.project,
+						task: taskMap.get(entry.taskId ?? 0) ?? null,
+					},
+				];
+			});
 
 			const unbilledByClient = new Map<
 				number,
@@ -129,8 +133,6 @@ export default {
 			const clientsWithUnbilled = allClients.filter((c) =>
 				unbilledByClient.has(c.id),
 			);
-
-			void unbilledEntries;
 
 			return render(
 				<InvoiceFormPage
@@ -216,15 +218,23 @@ export default {
 			}
 
 			const allProjects = await db.findMany(projects);
+			const allTasks = await db.findMany(projectTasks);
 			const clientRateMap = new Map(
 				(await db.findMany(clients)).map((c) => [c.id, c.hourlyRate]),
 			);
 			const projectMap = new Map(allProjects.map((p) => [p.id, p]));
+			const taskMap = new Map(allTasks.map((task) => [task.id, task]));
 
-			const typedEntries = entries.filter(
-				(e): e is typeof e & { project: (typeof allProjects)[0] } =>
-					'project' in e && e.project !== null,
-			);
+			const typedEntries = entries.flatMap((entry) => {
+				if (!('project' in entry) || entry.project === null) return [];
+				return [
+					{
+						...entry,
+						project: entry.project,
+						task: taskMap.get(entry.taskId ?? 0) ?? null,
+					},
+				];
+			});
 
 			const rateFor = (entry: (typeof typedEntries)[0]) => {
 				const project = projectMap.get(entry.projectId);

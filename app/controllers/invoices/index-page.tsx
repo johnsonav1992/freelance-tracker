@@ -1,5 +1,6 @@
 import type { Client, Invoice } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
@@ -17,15 +18,15 @@ export const InvoicesIndexPage = () => {
 		>
 			<PageHeader
 				eyebrow="Invoices"
-				title="Stay on top of what you’ve billed."
-				subtitle="Draft invoices, sent invoices, and paid invoices are all in one scan-friendly list."
+				title="Invoices"
+				subtitle="Draft, sent, and paid invoices."
 				actions={
-					<a
+					<AppLink
 						href={routes.invoices.new.href()}
 						class="btn btn-primary"
 					>
 						Create invoice
-					</a>
+					</AppLink>
 				}
 			/>
 
@@ -34,31 +35,31 @@ export const InvoicesIndexPage = () => {
 					title="No invoices yet"
 					description="Create an invoice from unbilled time when you’re ready to turn completed work into revenue."
 					action={
-						<a
+						<AppLink
 							href={routes.invoices.new.href()}
 							class="btn btn-primary"
 						>
 							Start invoicing
-						</a>
+						</AppLink>
 					}
 				/>
 			) : (
 				<SectionCard
 					title={`${invoices.length} invoice${invoices.length === 1 ? '' : 's'}`}
-					subtitle="Open an invoice to review line items or update its status."
+					subtitle="Open an invoice to review entries or update status."
 				>
 					<div class="list-stack">
 						{invoices.map((invoice) => (
 							<div class="list-item">
 								<div class="list-item-primary">
 									<p class="list-item-title">
-										<a
+										<AppLink
 											href={routes.invoices.show.href({
 												invoiceId: invoice.id,
 											})}
 										>
 											<span class="mono">{invoice.number}</span>
-										</a>
+										</AppLink>
 									</p>
 									<p class="list-item-text">{invoice.client.name}</p>
 									<div class="meta-row">
@@ -81,14 +82,14 @@ export const InvoicesIndexPage = () => {
 										</div>
 									</div>
 									<div class="inline-actions">
-										<a
+										<AppLink
 											href={routes.invoices.show.href({
 												invoiceId: invoice.id,
 											})}
 											class="btn btn-secondary btn-sm"
 										>
 											Open
-										</a>
+										</AppLink>
 										<RestfulForm
 											method="DELETE"
 											action={routes.invoices.destroy.href({

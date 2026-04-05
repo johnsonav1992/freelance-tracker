@@ -14,8 +14,8 @@ export interface RestfulFormProps {
 
 export const RestfulForm = clientEntry(
 	routes.assets.href({ path: 'entry.js#RestfulForm' }),
-	(_handle: Handle) =>
-		({
+	(_handle: Handle) => {
+		return ({
 			method = 'GET',
 			methodOverrideField = '_method',
 			action,
@@ -65,5 +65,6 @@ export const RestfulForm = clientEntry(
 					{children}
 				</form>
 			);
-		},
+		};
+	},
 );

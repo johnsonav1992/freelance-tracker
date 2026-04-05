@@ -1,5 +1,6 @@
 import type { Client } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { PageHeader } from '../../ui/Screen.tsx';
@@ -18,8 +19,8 @@ export const ClientFormPage = () => {
 		>
 			<PageHeader
 				eyebrow="Clients"
-				title={client ? 'Edit client' : 'Create a client'}
-				subtitle="Keep the record minimal: contact info, company, and the default hourly rate you want the app to use."
+				title={client ? 'Edit client' : 'New client'}
+				subtitle="Name, email, company, and default hourly rate."
 			/>
 
 			<div class="form-card">
@@ -34,7 +35,7 @@ export const ClientFormPage = () => {
 								type="text"
 								id="name"
 								name="name"
-								value={client?.name}
+								defaultValue={client?.name}
 								required
 								placeholder="Jane Smith"
 							/>
@@ -47,7 +48,7 @@ export const ClientFormPage = () => {
 									type="email"
 									id="email"
 									name="email"
-									value={client?.email}
+									defaultValue={client?.email}
 									required
 									placeholder="jane@example.com"
 								/>
@@ -59,7 +60,7 @@ export const ClientFormPage = () => {
 									type="text"
 									id="company"
 									name="company"
-									value={client?.company ?? ''}
+									defaultValue={client?.company ?? ''}
 									placeholder="Acme Studio"
 								/>
 								<div class="field-hint">
@@ -76,12 +77,11 @@ export const ClientFormPage = () => {
 								name="hourlyRate"
 								step="0.01"
 								min="0"
-								value={client?.hourlyRate ?? 0}
+								defaultValue={client?.hourlyRate ?? 0}
 								required
 							/>
 							<div class="field-hint">
-								Projects can override this later, but this is the rate the app
-								will assume by default.
+								Projects can override this rate later.
 							</div>
 						</div>
 
@@ -92,12 +92,12 @@ export const ClientFormPage = () => {
 							>
 								{client ? 'Save changes' : 'Create client'}
 							</button>
-							<a
+							<AppLink
 								href={routes.clients.index.href()}
 								class="btn btn-secondary"
 							>
 								Cancel
-							</a>
+							</AppLink>
 						</div>
 					</div>
 				</RestfulForm>

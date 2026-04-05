@@ -1,5 +1,6 @@
 import type { Client, Project } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
@@ -11,25 +12,25 @@ export const ClientShowPage = () => {
 			title={client.name}
 			activeNav="clients"
 		>
-			<a
+			<AppLink
 				href={routes.clients.index.href()}
 				class="breadcrumb"
 			>
 				← Back to clients
-			</a>
+			</AppLink>
 
 			<PageHeader
 				eyebrow="Client"
 				title={client.name}
-				subtitle={client.company || 'Independent client'}
+				subtitle={client.company || 'No company set'}
 				actions={
 					<>
-						<a
+						<AppLink
 							href={routes.clients.edit.href({ clientId: client.id })}
 							class="btn btn-secondary"
 						>
 							Edit client
-						</a>
+						</AppLink>
 						<RestfulForm
 							method="DELETE"
 							action={routes.clients.destroy.href({ clientId: client.id })}
@@ -48,7 +49,7 @@ export const ClientShowPage = () => {
 			<div class="detail-grid">
 				<SectionCard
 					title="Contact details"
-					subtitle="The basics you need when it’s time to follow up or invoice."
+					subtitle="Primary contact information."
 				>
 					<dl class="detail-list">
 						<div>
@@ -73,8 +74,8 @@ export const ClientShowPage = () => {
 				</SectionCard>
 
 				<SectionCard
-					title="Relationship snapshot"
-					subtitle="A quick read on how much work is tied to this client."
+					title="Summary"
+					subtitle="Project count and default rate."
 					tone="tint"
 				>
 					<div class="triptych-grid">
@@ -103,20 +104,20 @@ export const ClientShowPage = () => {
 
 			<SectionCard
 				title="Projects for this client"
-				subtitle="Open a project to track work sessions or review totals."
+				subtitle="Projects linked to this client."
 				actions={
-					<a
+					<AppLink
 						href={`${routes.projects.new.href()}?clientId=${client.id}`}
 						class="btn btn-primary btn-sm"
 					>
 						New project
-					</a>
+					</AppLink>
 				}
 			>
 				{projects.length === 0 ? (
 					<EmptyState
 						title="No projects yet"
-						description="Create a project for this client so you can start tracking time against real work."
+						description="Create a project to start tracking work for this client."
 					/>
 				) : (
 					<div class="list-stack">
@@ -124,16 +125,16 @@ export const ClientShowPage = () => {
 							<div class="list-item">
 								<div class="list-item-primary">
 									<p class="list-item-title">
-										<a
+										<AppLink
 											href={routes.projects.show.href({
 												projectId: project.id,
 											})}
 										>
 											{project.name}
-										</a>
+										</AppLink>
 									</p>
 									<p class="list-item-text">
-										{project.description || 'No project summary yet.'}
+										{project.description || 'No description.'}
 									</p>
 								</div>
 								<div class="list-item-side">

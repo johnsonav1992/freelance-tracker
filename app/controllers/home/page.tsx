@@ -1,6 +1,7 @@
 import { Timer } from '../../assets/timer.tsx';
 import type { Client, Invoice, Project, TimeEntry } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import {
 	EmptyState,
@@ -35,23 +36,23 @@ export const DashboardPage = () => {
 			activeNav="home"
 		>
 			<PageHeader
-				eyebrow="Overview"
-				title="Keep the business side easy."
-				subtitle="The dashboard keeps today’s work, unbilled time, and invoice follow-ups in one place so you can act without hunting around."
+				eyebrow="Dashboard"
+				title="Dashboard"
+				subtitle="Summary of active work, unbilled time, and recent invoices."
 				actions={
 					<>
-						<a
+						<AppLink
 							href={routes.time.new.href()}
 							class="btn btn-primary"
 						>
 							Log time
-						</a>
-						<a
+						</AppLink>
+						<AppLink
 							href={routes.invoices.new.href()}
 							class="btn btn-secondary"
 						>
 							Create invoice
-						</a>
+						</AppLink>
 					</>
 				}
 			/>
@@ -80,12 +81,12 @@ export const DashboardPage = () => {
 				<MetricCard
 					label="Clients"
 					value={String(clientCount)}
-					note="Active relationships you’re managing."
+					note="Total clients"
 				/>
 				<MetricCard
 					label="Active projects"
 					value={String(activeProjectCount)}
-					note="Work that still needs attention."
+					note="Projects not marked done"
 				/>
 				<MetricCard
 					label="Unbilled time"
@@ -100,48 +101,48 @@ export const DashboardPage = () => {
 				<MetricCard
 					label="Outstanding"
 					value={formatCurrency(outstandingAmount)}
-					note="Invoices marked sent but not yet paid."
+					note="Sent invoices not marked paid"
 				/>
 			</div>
 
 			<div class="split-grid">
 				<SectionCard
-					title="Next actions"
-					subtitle="The fastest paths through your regular admin work."
+					title="Quick actions"
+					subtitle="Common tasks"
 					tone="tint"
 				>
 					<div class="list-stack">
 						<ActionRow
 							href={routes.clients.new.href()}
 							title="Add a client"
-							copy="Start a new relationship with contact details and an hourly rate."
+							copy="Create a client record."
 						/>
 						<ActionRow
 							href={routes.projects.new.href()}
 							title="Create a project"
-							copy="Attach work to a client so time and invoices stay organized."
+							copy="Add a project under a client."
 						/>
 						<ActionRow
 							href={routes.time.new.href()}
 							title="Log time"
-							copy="Capture completed work or clean up a recent session."
+							copy="Add or edit a completed entry."
 						/>
 						<ActionRow
 							href={routes.invoices.new.href()}
 							title="Invoice unbilled work"
-							copy="Turn tracked time into money without leaving the app."
+							copy="Create an invoice from unbilled entries."
 						/>
 					</div>
 				</SectionCard>
 
 				<SectionCard
 					title="Recent invoices"
-					subtitle="Keep an eye on what’s drafted, sent, or paid."
+					subtitle="Latest invoice records"
 				>
 					{recentInvoices.length === 0 ? (
 						<EmptyState
 							title="No invoices yet"
-							description="When you create invoices, they’ll show up here so you can track status quickly."
+							description="Invoices will appear here after you create them."
 						/>
 					) : (
 						<div class="list-stack">
@@ -149,13 +150,13 @@ export const DashboardPage = () => {
 								<div class="list-item">
 									<div class="list-item-primary">
 										<p class="list-item-title">
-											<a
+											<AppLink
 												href={routes.invoices.show.href({
 													invoiceId: invoice.id,
 												})}
 											>
 												<span class="mono">{invoice.number}</span>
-											</a>
+											</AppLink>
 										</p>
 										<div class="meta-row">
 											<strong>{invoice.client.name}</strong>
@@ -165,14 +166,14 @@ export const DashboardPage = () => {
 										<span class={`badge badge-${invoice.status}`}>
 											{invoice.status}
 										</span>
-										<a
+										<AppLink
 											href={routes.invoices.show.href({
 												invoiceId: invoice.id,
 											})}
 											class="btn btn-secondary btn-sm"
 										>
 											Open
-										</a>
+										</AppLink>
 									</div>
 								</div>
 							))}
@@ -185,19 +186,19 @@ export const DashboardPage = () => {
 				<div class="callout">
 					<div>
 						<h2 class="callout-title">
-							{formatCurrency(unbilledAmount)} is ready to invoice
+							Unbilled total: {formatCurrency(unbilledAmount)}
 						</h2>
 						<p class="callout-copy">
-							You have {formatDuration(unbilledMs)} of finished billable time
-							waiting to be turned into an invoice.
+							{formatDuration(unbilledMs)} of finished billable time is not
+							attached to an invoice yet.
 						</p>
 					</div>
-					<a
+					<AppLink
 						href={routes.invoices.new.href()}
 						class="btn btn-primary"
 					>
 						Review unbilled work
-					</a>
+					</AppLink>
 				</div>
 			)}
 		</Layout>
@@ -214,7 +215,7 @@ const ActionRow = () => {
 		title: string;
 		copy: string;
 	}) => (
-		<a
+		<AppLink
 			href={href}
 			class="list-item"
 		>
@@ -225,6 +226,6 @@ const ActionRow = () => {
 			<div class="list-item-side">
 				<span class="meta-chip meta-chip-accent">Open</span>
 			</div>
-		</a>
+		</AppLink>
 	);
 };

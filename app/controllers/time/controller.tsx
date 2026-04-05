@@ -9,6 +9,7 @@ import {
 	entryProject,
 	projectClient,
 	projects,
+	projectTasks,
 	timeEntries,
 } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
@@ -19,6 +20,7 @@ import { TimeIndexPage } from './index-page.tsx';
 
 const entrySchema = f.object({
 	projectId: f.field(s.defaulted(s.string(), '')),
+	taskId: f.field(s.optional(s.string())),
 	description: f.field(s.optional(s.string())),
 	startedAt: f.field(s.defaulted(s.string(), '')),
 	endedAt: f.field(s.optional(s.string())),
@@ -40,6 +42,9 @@ export default {
 			const projectRows = await db.findMany(projects, {
 				with: { client: projectClient },
 			});
+			const allTasks = await db.findMany(projectTasks, {
+				orderBy: ['sortOrder', 'asc'],
+			});
 			const allProjects = projectRows.filter(
 				(
 					p,
@@ -52,12 +57,15 @@ export default {
 				(await db.findMany(clients)).map((c) => [c.id, c.hourlyRate]),
 			);
 			const projectMap = new Map(allProjects.map((p) => [p.id, p]));
+			const taskMap = new Map(allTasks.map((task) => [task.id, task]));
 
 			const typed = allEntries.flatMap((entry) => {
 				const project = projectMap.get(entry.projectId);
 				if (!project) return [];
 
-				return [{ ...entry, project }];
+				return [
+					{ ...entry, project, task: taskMap.get(entry.taskId ?? 0) ?? null },
+				];
 			});
 
 			const rateFor = (entry: (typeof typed)[0]) => {
@@ -80,12 +88,16 @@ export default {
 		async new({ get, request }) {
 			const db = get(Database);
 			const url = new URL(request.url);
-			const defaultProjectId = parseId(url.searchParams.get('projectId'));
+			const requestedProjectId = parseId(url.searchParams.get('projectId'));
+			const defaultTaskId = parseId(url.searchParams.get('taskId'));
 
 			const allProjects = await db.findMany(projects, {
 				where: { status: 'active' },
 				orderBy: ['name', 'asc'],
 				with: { client: projectClient },
+			});
+			const allTasks = await db.findMany(projectTasks, {
+				orderBy: ['sortOrder', 'asc'],
 			});
 
 			const typed = allProjects.filter(
@@ -96,11 +108,22 @@ export default {
 				} => 'client' in p && p.client !== null,
 			);
 
+			const typedTasks = allTasks.flatMap((task) => {
+				const project = typed.find((item) => item.id === task.projectId);
+				if (!project) return [];
+				return [{ ...task, project }];
+			});
+			const defaultProjectId =
+				requestedProjectId ??
+				typedTasks.find((task) => task.id === defaultTaskId)?.projectId;
+
 			return render(
 				<TimeEntryFormPage
 					action={routes.time.create.href()}
 					projects={typed}
 					defaultProjectId={defaultProjectId}
+					tasks={typedTasks}
+					defaultTaskId={defaultTaskId}
 				/>,
 			);
 		},
@@ -108,14 +131,19 @@ export default {
 		async create({ get }) {
 			const db = get(Database);
 			const formData = get(FormData);
-			const { projectId, description, startedAt, endedAt, billable } = s.parse(
-				entrySchema,
-				formData,
-			);
+			const { projectId, taskId, description, startedAt, endedAt, billable } =
+				s.parse(entrySchema, formData);
 			const now = Date.now();
+			const parsedProjectId = parseInt(projectId, 10);
+			const parsedTaskId = parseId(taskId);
+			const task =
+				parsedTaskId === undefined
+					? null
+					: await db.find(projectTasks, parsedTaskId);
 
 			await db.create(timeEntries, {
-				projectId: parseInt(projectId, 10),
+				projectId: parsedProjectId,
+				taskId: task && task.projectId === parsedProjectId ? task.id : null,
 				description: description || null,
 				startedAt: startedAt ? parseLocalDatetime(startedAt) : now,
 				endedAt: endedAt ? parseLocalDatetime(endedAt) : null,
@@ -152,6 +180,9 @@ export default {
 				orderBy: ['name', 'asc'],
 				with: { client: projectClient },
 			});
+			const allTasks = await db.findMany(projectTasks, {
+				orderBy: ['sortOrder', 'asc'],
+			});
 
 			const typed = allProjects.filter(
 				(
@@ -161,12 +192,20 @@ export default {
 				} => 'client' in p && p.client !== null,
 			);
 
+			const typedTasks = allTasks.flatMap((task) => {
+				const project = typed.find((item) => item.id === task.projectId);
+				if (!project) return [];
+				return [{ ...task, project }];
+			});
+
 			return render(
 				<TimeEntryFormPage
 					action={routes.time.update.href({ entryId: entry.id })}
 					method="PUT"
 					entry={entry}
 					projects={typed}
+					tasks={typedTasks}
+					defaultTaskId={entry.taskId ?? undefined}
 				/>,
 			);
 		},
@@ -182,13 +221,18 @@ export default {
 				return new Response('Time entry not found', { status: 404 });
 			}
 
-			const { projectId, description, startedAt, endedAt, billable } = s.parse(
-				entrySchema,
-				formData,
-			);
+			const { projectId, taskId, description, startedAt, endedAt, billable } =
+				s.parse(entrySchema, formData);
+			const parsedProjectId = parseInt(projectId, 10);
+			const parsedTaskId = parseId(taskId);
+			const task =
+				parsedTaskId === undefined
+					? null
+					: await db.find(projectTasks, parsedTaskId);
 
 			await db.update(timeEntries, entry.id, {
-				projectId: parseInt(projectId, 10),
+				projectId: parsedProjectId,
+				taskId: task && task.projectId === parsedProjectId ? task.id : null,
 				description: description || null,
 				startedAt: startedAt ? parseLocalDatetime(startedAt) : entry.startedAt,
 				endedAt: endedAt ? parseLocalDatetime(endedAt) : null,

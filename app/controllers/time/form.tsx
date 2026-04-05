@@ -1,5 +1,11 @@
-import type { Client, Project, TimeEntry } from '../../data/schema.ts';
+import type {
+	Client,
+	Project,
+	ProjectTask,
+	TimeEntry,
+} from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { PageHeader } from '../../ui/Screen.tsx';
@@ -9,7 +15,9 @@ export interface TimeEntryFormPageProps {
 	method?: 'POST' | 'PUT';
 	entry?: TimeEntry;
 	projects: (Project & { client: Client })[];
+	tasks: (ProjectTask & { project: Project & { client: Client } })[];
 	defaultProjectId?: number;
+	defaultTaskId?: number;
 }
 
 export const TimeEntryFormPage = () => {
@@ -18,7 +26,9 @@ export const TimeEntryFormPage = () => {
 		method = 'POST',
 		entry,
 		projects,
+		tasks,
 		defaultProjectId,
+		defaultTaskId,
 	}: TimeEntryFormPageProps) => {
 		const toDatetimeLocal = (ms: number) => {
 			const d = new Date(ms);
@@ -34,7 +44,7 @@ export const TimeEntryFormPage = () => {
 				<PageHeader
 					eyebrow="Time"
 					title={entry ? 'Edit time entry' : 'Log time'}
-					subtitle="Record exactly what you worked on, when it started, and whether it should be billable."
+					subtitle="Project, description, times, and billable status."
 				/>
 
 				<div class="form-card">
@@ -48,18 +58,18 @@ export const TimeEntryFormPage = () => {
 								<select
 									id="projectId"
 									name="projectId"
+									defaultValue={
+										entry
+											? String(entry.projectId)
+											: defaultProjectId
+												? String(defaultProjectId)
+												: ''
+									}
 									required
 								>
 									<option value="">Select a project…</option>
 									{projects.map((project) => (
-										<option
-											value={project.id}
-											selected={
-												entry
-													? entry.projectId === project.id
-													: defaultProjectId === project.id
-											}
-										>
+										<option value={project.id}>
 											{project.client.name} — {project.name}
 										</option>
 									))}
@@ -72,9 +82,34 @@ export const TimeEntryFormPage = () => {
 									type="text"
 									id="description"
 									name="description"
-									value={entry?.description ?? ''}
+									defaultValue={entry?.description ?? ''}
 									placeholder="What did you work on?"
 								/>
+							</div>
+
+							<div class="form-group">
+								<label for="taskId">Task</label>
+								<select
+									id="taskId"
+									name="taskId"
+									defaultValue={
+										entry?.taskId
+											? String(entry.taskId)
+											: defaultTaskId
+												? String(defaultTaskId)
+												: ''
+									}
+								>
+									<option value="">No task</option>
+									{tasks.map((task) => (
+										<option value={task.id}>
+											{task.project.name} — {task.title}
+										</option>
+									))}
+								</select>
+								<div class="field-hint">
+									Optional. Use a task under the selected project.
+								</div>
 							</div>
 
 							<div class="field-grid">
@@ -84,7 +119,7 @@ export const TimeEntryFormPage = () => {
 										type="datetime-local"
 										id="startedAt"
 										name="startedAt"
-										value={
+										defaultValue={
 											entry
 												? toDatetimeLocal(entry.startedAt)
 												: toDatetimeLocal(Date.now())
@@ -99,11 +134,11 @@ export const TimeEntryFormPage = () => {
 										type="datetime-local"
 										id="endedAt"
 										name="endedAt"
-										value={entry?.endedAt ? toDatetimeLocal(entry.endedAt) : ''}
+										defaultValue={
+											entry?.endedAt ? toDatetimeLocal(entry.endedAt) : ''
+										}
 									/>
-									<div class="field-hint">
-										Leave this blank if the timer is still running.
-									</div>
+									<div class="field-hint">Leave blank for a running entry.</div>
 								</div>
 							</div>
 
@@ -112,13 +147,11 @@ export const TimeEntryFormPage = () => {
 									type="checkbox"
 									name="billable"
 									value="true"
-									checked={entry ? entry.billable : true}
+									defaultChecked={entry ? entry.billable : true}
 								/>
 								<span class="checkbox-copy">
 									<strong>Billable entry</strong>
-									<span>
-										Include this time when you prepare invoices later.
-									</span>
+									<span>Include this entry in invoice creation.</span>
 								</span>
 							</label>
 
@@ -129,12 +162,12 @@ export const TimeEntryFormPage = () => {
 								>
 									{entry ? 'Save changes' : 'Save entry'}
 								</button>
-								<a
+								<AppLink
 									href={routes.time.index.href()}
 									class="btn btn-secondary"
 								>
 									Cancel
-								</a>
+								</AppLink>
 							</div>
 						</div>
 					</RestfulForm>

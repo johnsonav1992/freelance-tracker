@@ -1,6 +1,12 @@
 import { Timer } from '../../assets/timer.tsx';
-import type { Client, Project, TimeEntry } from '../../data/schema.ts';
+import type {
+	Client,
+	Project,
+	ProjectTask,
+	TimeEntry,
+} from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
@@ -15,11 +21,13 @@ export const ProjectShowPage = () => {
 		project,
 		client,
 		entries,
+		tasks,
 		runningEntry,
 	}: {
 		project: Project;
 		client: Client;
 		entries: TimeEntry[];
+		tasks: ProjectTask[];
 		runningEntry: TimeEntry | null;
 	}) => {
 		const effectiveRate = project.rateOverride ?? client.hourlyRate;
@@ -36,27 +44,28 @@ export const ProjectShowPage = () => {
 		const totalAmount =
 			project.manualAmount ??
 			trackedAmount + (project.manualHours ?? 0) * effectiveRate;
+		const taskMap = new Map(tasks.map((task) => [task.id, task]));
 
 		return (
 			<Layout
 				title={project.name}
 				activeNav="projects"
 			>
-				<a
+				<AppLink
 					href={routes.projects.index.href()}
 					class="breadcrumb"
 				>
 					← Back to projects
-				</a>
+				</AppLink>
 
 				<PageHeader
 					eyebrow="Project"
 					title={project.name}
-					subtitle={`For ${client.name}`}
+					subtitle={client.name}
 					actions={
 						<>
 							{!runningEntry && (
-								<form
+								<RestfulForm
 									method="POST"
 									action={routes.time.create.href()}
 								>
@@ -76,14 +85,14 @@ export const ProjectShowPage = () => {
 									>
 										Start timer
 									</button>
-								</form>
+								</RestfulForm>
 							)}
-							<a
+							<AppLink
 								href={routes.projects.edit.href({ projectId: project.id })}
 								class="btn btn-secondary"
 							>
 								Edit project
-							</a>
+							</AppLink>
 							<RestfulForm
 								method="DELETE"
 								action={routes.projects.destroy.href({ projectId: project.id })}
@@ -102,7 +111,7 @@ export const ProjectShowPage = () => {
 				{runningEntry && (
 					<SectionCard
 						title="Timer running"
-						subtitle="You can stop it here or jump into the time log later."
+						subtitle="Active entry for this project."
 						actions={
 							<Timer
 								setup={{
@@ -124,9 +133,8 @@ export const ProjectShowPage = () => {
 						<div class="metric-label">Total time</div>
 						<div class="metric-value">{formatDuration(totalMs)}</div>
 						<div class="metric-note">
-							Tracked time plus{' '}
-							{project.manualHours ? `${project.manualHours}h` : 'no'} manual
-							carry-over.
+							Includes {project.manualHours ? `${project.manualHours}h` : 'no'}{' '}
+							manual carry-over.
 						</div>
 					</div>
 					<div class="metric-card">
@@ -139,8 +147,8 @@ export const ProjectShowPage = () => {
 						<div class="metric-value">{formatCurrency(effectiveRate)}</div>
 						<div class="metric-note">
 							{project.rateOverride
-								? 'Using project-specific pricing.'
-								: 'Using the client default rate.'}
+								? 'Project rate override.'
+								: 'Using client default rate.'}
 						</div>
 					</div>
 				</div>
@@ -148,15 +156,17 @@ export const ProjectShowPage = () => {
 				<div class="detail-grid">
 					<SectionCard
 						title="Project details"
-						subtitle="The settings that drive pricing and status."
+						subtitle="Current project settings."
 					>
 						<dl class="detail-list">
 							<div>
 								<dt>Client</dt>
 								<dd>
-									<a href={routes.clients.show.href({ clientId: client.id })}>
+									<AppLink
+										href={routes.clients.show.href({ clientId: client.id })}
+									>
 										{client.name}
-									</a>
+									</AppLink>
 								</dd>
 							</div>
 							<div>
@@ -185,13 +195,13 @@ export const ProjectShowPage = () => {
 							</div>
 						</dl>
 						<p class="list-item-text">
-							{project.description || 'No project summary added.'}
+							{project.description || 'No description.'}
 						</p>
 					</SectionCard>
 
 					<SectionCard
-						title="Time health"
-						subtitle="Useful context before you invoice or pause the work."
+						title="Summary"
+						subtitle="Time and amount totals."
 						tone="tint"
 					>
 						<dl class="detail-list">
@@ -218,21 +228,111 @@ export const ProjectShowPage = () => {
 				</div>
 
 				<SectionCard
-					title="Time entries"
-					subtitle="Everything logged against this project."
+					title="Tasks"
+					subtitle="Subtasks under this project."
 					actions={
-						<a
+						<AppLink
+							href={routes.projects.tasks.new.href({ projectId: project.id })}
+							class="btn btn-primary btn-sm"
+						>
+							New task
+						</AppLink>
+					}
+				>
+					{tasks.length === 0 ? (
+						<EmptyState
+							title="No tasks yet"
+							description="Add subtasks here instead of creating extra sibling projects."
+						/>
+					) : (
+						<div class="list-stack">
+							{tasks.map((task) => {
+								const taskEntries = entries.filter(
+									(entry) => entry.taskId === task.id,
+								);
+								const taskMs = taskEntries.reduce((sum, entry) => {
+									if (entry.endedAt === null) return sum;
+									return sum + (entry.endedAt - entry.startedAt);
+								}, 0);
+
+								return (
+									<div class="list-item">
+										<div class="list-item-primary">
+											<p class="list-item-title">{task.title}</p>
+											<p class="list-item-text">
+												{task.description || 'No description.'}
+											</p>
+											<div class="meta-row">
+												<span
+													class={`badge badge-${taskStatusToBadge(task.status)}`}
+												>
+													{taskStatusLabel(task.status)}
+												</span>
+												<span class="meta-dot" />
+												<span>{taskEntries.length} entries</span>
+											</div>
+										</div>
+										<div class="list-item-side">
+											<div class="value-block">
+												<div class="value-label">Tracked</div>
+												<div class="value-main">{formatDuration(taskMs)}</div>
+											</div>
+											<div class="inline-actions">
+												<AppLink
+													href={`${routes.time.new.href()}?projectId=${project.id}&taskId=${task.id}`}
+													class="btn btn-secondary btn-sm"
+												>
+													Log time
+												</AppLink>
+												<AppLink
+													href={routes.projects.tasks.edit.href({
+														projectId: project.id,
+														taskId: task.id,
+													})}
+													class="btn btn-secondary btn-sm"
+												>
+													Edit
+												</AppLink>
+												<RestfulForm
+													method="DELETE"
+													action={routes.projects.tasks.destroy.href({
+														projectId: project.id,
+														taskId: task.id,
+													})}
+													class="form-contents"
+												>
+													<button
+														type="submit"
+														class="btn btn-danger btn-sm"
+													>
+														Delete
+													</button>
+												</RestfulForm>
+											</div>
+										</div>
+									</div>
+								);
+							})}
+						</div>
+					)}
+				</SectionCard>
+
+				<SectionCard
+					title="Time entries"
+					subtitle="Entries linked to this project."
+					actions={
+						<AppLink
 							href={`${routes.time.new.href()}?projectId=${project.id}`}
 							class="btn btn-primary btn-sm"
 						>
 							Log time
-						</a>
+						</AppLink>
 					}
 				>
 					{entries.length === 0 ? (
 						<EmptyState
 							title="No time logged yet"
-							description="Track a session or add a manual entry so this project starts building useful history."
+							description="Add a time entry or start a timer for this project."
 						/>
 					) : (
 						<div class="list-stack">
@@ -248,9 +348,15 @@ export const ProjectShowPage = () => {
 									<div class="list-item">
 										<div class="list-item-primary">
 											<p class="list-item-title">
-												{entry.description || 'No work note added.'}
+												{entry.description || 'No description.'}
 											</p>
 											<div class="meta-row">
+												{entry.taskId && taskMap.get(entry.taskId) && (
+													<>
+														<span>{taskMap.get(entry.taskId)?.title}</span>
+														<span class="meta-dot" />
+													</>
+												)}
 												<span>{formatDate(entry.startedAt)}</span>
 												{entry.billable && (
 													<span class="meta-chip meta-chip-success">
@@ -286,12 +392,12 @@ export const ProjectShowPage = () => {
 												)}
 											</div>
 											<div class="inline-actions">
-												<a
+												<AppLink
 													href={routes.time.edit.href({ entryId: entry.id })}
 													class="btn btn-secondary btn-sm"
 												>
 													Edit
-												</a>
+												</AppLink>
 												<RestfulForm
 													method="DELETE"
 													action={routes.time.destroy.href({
@@ -317,4 +423,26 @@ export const ProjectShowPage = () => {
 			</Layout>
 		);
 	};
+};
+
+const taskStatusLabel = (status: string): string => {
+	switch (status) {
+		case 'in_progress':
+			return 'In progress';
+		case 'done':
+			return 'Done';
+		default:
+			return 'Todo';
+	}
+};
+
+const taskStatusToBadge = (status: string): string => {
+	switch (status) {
+		case 'in_progress':
+			return 'active';
+		case 'done':
+			return 'done';
+		default:
+			return 'draft';
+	}
 };

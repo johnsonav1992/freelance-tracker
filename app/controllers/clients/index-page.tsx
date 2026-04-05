@@ -1,5 +1,6 @@
 import type { Client } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
+import { AppLink } from '../../ui/AppLink.tsx';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
 import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
@@ -13,15 +14,15 @@ export const ClientsIndexPage = () => {
 		>
 			<PageHeader
 				eyebrow="Clients"
-				title="Keep your client list clean."
-				subtitle="Every client carries the contact details and baseline rate that the rest of the app relies on."
+				title="Clients"
+				subtitle="Contact details and default rates."
 				actions={
-					<a
+					<AppLink
 						href={routes.clients.new.href()}
 						class="btn btn-primary"
 					>
 						New client
-					</a>
+					</AppLink>
 				}
 			/>
 
@@ -30,27 +31,29 @@ export const ClientsIndexPage = () => {
 					title="No clients yet"
 					description="Create your first client so projects, tracked time, and invoices all have somewhere sensible to live."
 					action={
-						<a
+						<AppLink
 							href={routes.clients.new.href()}
 							class="btn btn-primary"
 						>
 							Create client
-						</a>
+						</AppLink>
 					}
 				/>
 			) : (
 				<SectionCard
 					title={`${clients.length} client${clients.length === 1 ? '' : 's'}`}
-					subtitle="Open a client to see projects and contact details."
+					subtitle="Open a client to view projects and details."
 				>
 					<div class="list-stack">
 						{clients.map((client) => (
 							<div class="list-item">
 								<div class="list-item-primary">
 									<p class="list-item-title">
-										<a href={routes.clients.show.href({ clientId: client.id })}>
+										<AppLink
+											href={routes.clients.show.href({ clientId: client.id })}
+										>
 											{client.name}
-										</a>
+										</AppLink>
 									</p>
 									<p class="list-item-text">
 										{client.company || 'Independent client'}
@@ -69,12 +72,12 @@ export const ClientsIndexPage = () => {
 										</div>
 									</div>
 									<div class="inline-actions">
-										<a
+										<AppLink
 											href={routes.clients.edit.href({ clientId: client.id })}
 											class="btn btn-secondary btn-sm"
 										>
 											Edit
-										</a>
+										</AppLink>
 										<RestfulForm
 											method="DELETE"
 											action={routes.clients.destroy.href({

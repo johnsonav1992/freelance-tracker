@@ -1,4 +1,4 @@
-import { clientEntry, css, type Handle } from 'remix/component';
+import { clientEntry, css, type Handle, navigate, on } from 'remix/component';
 
 import { routes } from '../routes.ts';
 
@@ -29,13 +29,19 @@ export const Timer = clientEntry(
 
 			return (
 				<div
-					mix={css({ display: 'flex', alignItems: 'center', gap: '0.75rem' })}
+					mix={css({
+						display: 'flex',
+						alignItems: 'center',
+						gap: '0.75rem',
+						flexWrap: 'wrap',
+					})}
 				>
 					<span
 						mix={css({
 							fontFamily: 'monospace',
-							fontSize: '1rem',
-							fontWeight: 600,
+							fontSize: '0.98rem',
+							fontWeight: 700,
+							lineHeight: 1,
 						})}
 					>
 						{display}
@@ -43,18 +49,35 @@ export const Timer = clientEntry(
 					<form
 						method="POST"
 						action={routes.time.stop.href({ entryId })}
+						mix={on<HTMLFormElement, 'submit'>(
+							'submit',
+							async (event, signal) => {
+								event.preventDefault();
+								const form = event.currentTarget;
+								const response = await fetch(form.action, {
+									method: 'POST',
+									body: new FormData(form),
+									signal,
+								});
+								await navigate(response.url);
+							},
+						)}
 					>
 						<button
 							type="submit"
 							mix={css({
-								background: '#dc2626',
-								color: 'white',
-								border: 'none',
-								borderRadius: '4px',
-								padding: '0.3rem 0.75rem',
-								fontSize: '0.8rem',
+								background: 'rgba(244, 63, 94, 0.14)',
+								color: '#fda4af',
+								border: '1px solid rgba(253, 164, 175, 0.14)',
+								borderRadius: '10px',
+								padding: '0.55rem 0.9rem',
+								fontSize: '0.84rem',
+								fontWeight: 700,
+								lineHeight: 1,
 								cursor: 'pointer',
-								'&:hover': { background: '#b91c1c' },
+								'&:hover': {
+									background: 'rgba(244, 63, 94, 0.2)',
+								},
 							})}
 						>
 							Stop

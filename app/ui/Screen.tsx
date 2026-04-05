@@ -77,7 +77,6 @@ export interface EmptyStateProps {
 export const EmptyState = () => {
 	return ({ title, description, action }: EmptyStateProps) => (
 		<div class="empty-state">
-			<div class="empty-state-icon">•</div>
 			<h2 class="empty-state-title">{title}</h2>
 			<p class="empty-state-description">{description}</p>
 			{action && <div class="empty-state-action">{action}</div>}

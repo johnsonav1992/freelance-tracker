@@ -14,17 +14,23 @@ export const routes = route({
 
 	clients: resources('clients', { param: 'clientId' }),
 
-	projects: resources('projects', { param: 'projectId' }),
+	projects: {
+		...resources('projects', { param: 'projectId' }),
+		tasks: resources('projects/:projectId/tasks', {
+			param: 'taskId',
+			only: ['new', 'create', 'edit', 'update', 'destroy'],
+		}),
+	},
 
 	time: route('time', {
-		index: get('/time'),
-		new: get('/time/new'),
-		create: post('/time'),
-		show: get('/time/:entryId'),
-		edit: get('/time/:entryId/edit'),
-		update: put('/time/:entryId'),
-		destroy: del('/time/:entryId'),
-		stop: post('/time/:entryId/stop'),
+		index: get('/'),
+		new: get('/new'),
+		create: post('/'),
+		show: get('/:entryId'),
+		edit: get('/:entryId/edit'),
+		update: put('/:entryId'),
+		destroy: del('/:entryId'),
+		stop: post('/:entryId/stop'),
 	}),
 
 	invoices: resources('invoices', { param: 'invoiceId' }),

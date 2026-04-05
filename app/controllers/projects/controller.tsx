@@ -8,6 +8,7 @@ import {
 	clients,
 	projectClient,
 	projects,
+	projectTasks,
 	timeEntries,
 } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
@@ -16,6 +17,7 @@ import { render } from '../../utils/render.tsx';
 import { ProjectFormPage } from './form.tsx';
 import { ProjectsIndexPage } from './index-page.tsx';
 import { ProjectShowPage } from './show-page.tsx';
+import { ProjectTaskFormPage } from './task-form.tsx';
 
 const projectSchema = f.object({
 	clientId: f.field(s.defaulted(s.string(), '')),
@@ -27,6 +29,12 @@ const projectSchema = f.object({
 	manualAmount: f.field(s.optional(s.string())),
 });
 
+const taskSchema = f.object({
+	title: f.field(s.defaulted(s.string(), '')),
+	description: f.field(s.optional(s.string())),
+	status: f.field(s.defaulted(s.string(), 'todo')),
+});
+
 export default {
 	actions: {
 		async index({ get }) {
@@ -35,7 +43,6 @@ export default {
 				orderBy: ['name', 'asc'],
 				with: { client: projectClient },
 			});
-			console.dir({ allProjects }, { depth: null });
 
 			const typed = allProjects.filter(
 				(
@@ -106,11 +113,15 @@ export default {
 				return new Response('Project not found', { status: 404 });
 			}
 
-			const [client, entries] = await Promise.all([
+			const [client, entries, tasks] = await Promise.all([
 				db.find(clients, project.clientId),
 				db.findMany(timeEntries, {
 					where: { projectId: project.id },
 					orderBy: ['startedAt', 'desc'],
+				}),
+				db.findMany(projectTasks, {
+					where: { projectId: project.id },
+					orderBy: ['sortOrder', 'asc'],
 				}),
 			]);
 
@@ -125,6 +136,7 @@ export default {
 					project={project}
 					client={client}
 					entries={entries}
+					tasks={tasks}
 					runningEntry={runningEntry}
 				/>,
 			);
@@ -206,6 +218,136 @@ export default {
 			}
 
 			return redirect(routes.projects.index.href());
+		},
+
+		tasks: {
+			actions: {
+				async new({ get, params }) {
+					const db = get(Database);
+					const projectId = parseId(params.projectId);
+					const project =
+						projectId === undefined
+							? undefined
+							: await db.find(projects, projectId);
+
+					if (!project) {
+						return new Response('Project not found', { status: 404 });
+					}
+
+					return render(
+						<ProjectTaskFormPage
+							action={routes.projects.tasks.create.href({
+								projectId: project.id,
+							})}
+							project={project}
+						/>,
+					);
+				},
+
+				async create({ get, params }) {
+					const db = get(Database);
+					const formData = get(FormData);
+					const projectId = parseId(params.projectId);
+					const project =
+						projectId === undefined
+							? undefined
+							: await db.find(projects, projectId);
+
+					if (!project) {
+						return new Response('Project not found', { status: 404 });
+					}
+
+					const { title, description, status } = s.parse(taskSchema, formData);
+					const now = Date.now();
+					const lastTask = await db.findMany(projectTasks, {
+						where: { projectId: project.id },
+						orderBy: ['sortOrder', 'desc'],
+						limit: 1,
+					});
+
+					await db.create(projectTasks, {
+						projectId: project.id,
+						title,
+						description: description || null,
+						status,
+						sortOrder: (lastTask[0]?.sortOrder ?? -1) + 1,
+						createdAt: now,
+						updatedAt: now,
+					});
+
+					return redirect(routes.projects.show.href({ projectId: project.id }));
+				},
+
+				async edit({ get, params }) {
+					const db = get(Database);
+					const projectId = parseId(params.projectId);
+					const taskId = parseId(params.taskId);
+					const [project, task] = await Promise.all([
+						projectId === undefined ? undefined : db.find(projects, projectId),
+						taskId === undefined ? undefined : db.find(projectTasks, taskId),
+					]);
+
+					if (!project || !task || task.projectId !== project.id) {
+						return new Response('Task not found', { status: 404 });
+					}
+
+					return render(
+						<ProjectTaskFormPage
+							action={routes.projects.tasks.update.href({
+								projectId: project.id,
+								taskId: task.id,
+							})}
+							method="PUT"
+							project={project}
+							task={task}
+						/>,
+					);
+				},
+
+				async update({ get, params }) {
+					const db = get(Database);
+					const formData = get(FormData);
+					const projectId = parseId(params.projectId);
+					const taskId = parseId(params.taskId);
+					const [project, task] = await Promise.all([
+						projectId === undefined ? undefined : db.find(projects, projectId),
+						taskId === undefined ? undefined : db.find(projectTasks, taskId),
+					]);
+
+					if (!project || !task || task.projectId !== project.id) {
+						return new Response('Task not found', { status: 404 });
+					}
+
+					const { title, description, status } = s.parse(taskSchema, formData);
+
+					await db.update(projectTasks, task.id, {
+						title,
+						description: description || null,
+						status,
+						updatedAt: Date.now(),
+					});
+
+					return redirect(routes.projects.show.href({ projectId: project.id }));
+				},
+
+				async destroy({ get, params }) {
+					const db = get(Database);
+					const projectId = parseId(params.projectId);
+					const taskId = parseId(params.taskId);
+					const [project, task] = await Promise.all([
+						projectId === undefined ? undefined : db.find(projects, projectId),
+						taskId === undefined ? undefined : db.find(projectTasks, taskId),
+					]);
+
+					if (!project || !task || task.projectId !== project.id) {
+						return new Response('Task not found', { status: 404 });
+					}
+
+					await db.delete(projectTasks, task.id);
+
+					return redirect(routes.projects.show.href({ projectId: project.id }));
+				},
+			},
 		},
 	},
 } satisfies Controller<typeof routes.projects>;
