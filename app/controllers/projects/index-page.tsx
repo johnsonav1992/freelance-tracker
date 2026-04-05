@@ -189,8 +189,8 @@ export const ProjectsIndexPage =
 										})}
 									>
 										{project.rateOverride
-											? formatCurrency(project.rateOverride) + '/hr'
-											: formatCurrency(project.client.hourlyRate) + '/hr'}
+											? `${formatCurrency(project.rateOverride)}/hr`
+											: `${formatCurrency(project.client.hourlyRate)}/hr`}
 									</td>
 									<td
 										mix={css({ padding: '0.75rem 1rem', textAlign: 'right' })}

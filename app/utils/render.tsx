@@ -1,7 +1,11 @@
 import { getContext } from 'remix/async-context-middleware';
 import type { RemixNode } from 'remix/component';
 import { renderToStream } from 'remix/component/server';
-import type { RequestContext, Router } from 'remix/fetch-router';
+import type {
+	ContextEntries,
+	RequestContext,
+	Router,
+} from 'remix/fetch-router';
 
 export const render = (node: RemixNode, init?: ResponseInit): Response => {
 	const context = getContext();
@@ -24,7 +28,9 @@ export const render = (node: RemixNode, init?: ResponseInit): Response => {
 	return new Response(stream, { ...init, headers });
 };
 
-const resolveFrame = async <C extends RequestContext<Record<string, unknown>, any>>(
+const resolveFrame = async <
+	C extends RequestContext<Record<string, unknown>, ContextEntries>,
+>(
 	router: Router<C>,
 	request: Request,
 	src: string,

@@ -53,8 +53,7 @@ export default {
 			where: { status: 'sent' },
 		});
 		const outstandingAmount = sentInvoices.reduce(
-			(sum, inv) =>
-				sum + ((inv as unknown as { total?: number }).total ?? 0),
+			(sum, inv) => sum + ((inv as unknown as { total?: number }).total ?? 0),
 			0,
 		);
 
