@@ -1,8 +1,8 @@
-import { css } from 'remix/component';
-
 import type { Client, Project } from '../../data/schema.ts';
+import { routes } from '../../routes.ts';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
+import { PageHeader } from '../../ui/Screen.tsx';
 
 export interface ProjectFormPageProps {
 	action: string;
@@ -12,9 +12,8 @@ export interface ProjectFormPageProps {
 	defaultClientId?: number;
 }
 
-export const ProjectFormPage =
-	() =>
-	({
+export const ProjectFormPage = () => {
+	return ({
 		action,
 		method = 'POST',
 		project,
@@ -25,28 +24,18 @@ export const ProjectFormPage =
 			title={project ? 'Edit Project' : 'New Project'}
 			activeNav="projects"
 		>
-			<div mix={css({ marginBottom: '1.5rem' })}>
-				<h1 mix={css({ margin: 0, fontSize: '1.5rem', fontWeight: 700 })}>
-					{project ? 'Edit Project' : 'New Project'}
-				</h1>
-			</div>
+			<PageHeader
+				eyebrow="Projects"
+				title={project ? 'Edit project' : 'Create a project'}
+				subtitle="Set the client, status, and any pricing overrides. Everything else in the app builds from this."
+			/>
 
-			<div
-				mix={css({
-					background: '#1a1a1a',
-					borderRadius: '8px',
-					padding: '1.5rem',
-					border: '1px solid #2a2a2a',
-					maxWidth: '560px',
-				})}
-			>
+			<div class="form-card">
 				<RestfulForm
 					method={method}
 					action={action}
 				>
-					<div
-						mix={css({ display: 'flex', flexDirection: 'column', gap: '1rem' })}
-					>
+					<div class="form-grid">
 						<div class="form-group">
 							<label for="clientId">Client</label>
 							<select
@@ -71,114 +60,122 @@ export const ProjectFormPage =
 						</div>
 
 						<div class="form-group">
-							<label for="name">Project Name</label>
+							<label for="name">Project name</label>
 							<input
 								type="text"
 								id="name"
 								name="name"
 								value={project?.name}
 								required
-								placeholder="Website Redesign"
+								placeholder="Website refresh"
 							/>
 						</div>
 
 						<div class="form-group">
-							<label for="description">Description (optional)</label>
+							<label for="description">Project summary</label>
 							<textarea
 								id="description"
 								name="description"
-								rows={3}
-								placeholder="Brief description of the project"
+								rows={4}
+								placeholder="What is this project, and what kind of work does it cover?"
 							>
 								{project?.description ?? ''}
 							</textarea>
 						</div>
 
-						<div class="form-group">
-							<label for="status">Status</label>
-							<select
-								id="status"
-								name="status"
-								required
+						<div class="field-grid">
+							<div class="form-group">
+								<label for="status">Status</label>
+								<select
+									id="status"
+									name="status"
+									required
+								>
+									<option
+										value="active"
+										selected={!project || project.status === 'active'}
+									>
+										Active
+									</option>
+									<option
+										value="paused"
+										selected={project?.status === 'paused'}
+									>
+										Paused
+									</option>
+									<option
+										value="done"
+										selected={project?.status === 'done'}
+									>
+										Done
+									</option>
+								</select>
+							</div>
+
+							<div class="form-group">
+								<label for="rateOverride">Project-specific hourly rate</label>
+								<input
+									type="number"
+									id="rateOverride"
+									name="rateOverride"
+									step="0.01"
+									min="0"
+									value={project?.rateOverride ?? ''}
+									placeholder="Leave blank to use client rate"
+								/>
+							</div>
+						</div>
+
+						<div class="field-grid">
+							<div class="form-group">
+								<label for="manualHours">Manual carry-over hours</label>
+								<input
+									type="number"
+									id="manualHours"
+									name="manualHours"
+									step="0.01"
+									min="0"
+									value={project?.manualHours ?? ''}
+									placeholder="Hours done before tracking here"
+								/>
+							</div>
+
+							<div class="form-group">
+								<label for="manualAmount">Manual amount override</label>
+								<input
+									type="number"
+									id="manualAmount"
+									name="manualAmount"
+									step="0.01"
+									min="0"
+									value={project?.manualAmount ?? ''}
+									placeholder="Optional fixed amount"
+								/>
+							</div>
+						</div>
+
+						<div class="field-hint">
+							Use manual values only when some work happened before you started
+							tracking this project in the app.
+						</div>
+
+						<div class="form-actions">
+							<button
+								type="submit"
+								class="btn btn-primary"
 							>
-								<option
-									value="active"
-									selected={!project || project.status === 'active'}
-								>
-									Active
-								</option>
-								<option
-									value="paused"
-									selected={project?.status === 'paused'}
-								>
-									Paused
-								</option>
-								<option
-									value="done"
-									selected={project?.status === 'done'}
-								>
-									Done
-								</option>
-							</select>
+								{project ? 'Save changes' : 'Create project'}
+							</button>
+							<a
+								href={routes.projects.index.href()}
+								class="btn btn-secondary"
+							>
+								Cancel
+							</a>
 						</div>
-
-						<div class="form-group">
-							<label for="rateOverride">Rate Override (optional)</label>
-							<input
-								type="number"
-								id="rateOverride"
-								name="rateOverride"
-								step="0.01"
-								min="0"
-								value={project?.rateOverride ?? ''}
-								placeholder="Leave blank to use client rate"
-							/>
-						</div>
-
-						<div class="form-group">
-							<label for="manualHours">Manual Hours (optional)</label>
-							<input
-								type="number"
-								id="manualHours"
-								name="manualHours"
-								step="0.01"
-								min="0"
-								value={project?.manualHours ?? ''}
-								placeholder="Hours worked before tracking in this app"
-							/>
-						</div>
-
-						<div class="form-group">
-							<label for="manualAmount">Manual Amount Override (optional)</label>
-							<input
-								type="number"
-								id="manualAmount"
-								name="manualAmount"
-								step="0.01"
-								min="0"
-								value={project?.manualAmount ?? ''}
-								placeholder="Fixed total — overrides hours × rate"
-							/>
-						</div>
-					</div>
-
-					<div
-						mix={css({ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' })}
-					>
-						<button
-							type="submit"
-							class="btn btn-primary"
-						>
-							{project ? 'Update Project' : 'Create Project'}
-						</button>
-						<a
-							href="/projects"
-							class="btn btn-secondary"
-						>
-							Cancel
-						</a>
 					</div>
 				</RestfulForm>
 			</div>
 		</Layout>
 	);
+};

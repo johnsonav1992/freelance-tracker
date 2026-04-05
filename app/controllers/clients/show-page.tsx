@@ -1,316 +1,159 @@
-import { css } from 'remix/component';
-
 import type { Client, Project } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
+import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
 import { formatCurrency, formatDate } from '../../utils/format.ts';
 
-export const ClientShowPage =
-	() =>
-	({ client, projects }: { client: Client; projects: Project[] }) => (
+export const ClientShowPage = () => {
+	return ({ client, projects }: { client: Client; projects: Project[] }) => (
 		<Layout
 			title={client.name}
 			activeNav="clients"
 		>
-			<div
-				mix={css({
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'flex-start',
-					marginBottom: '1.5rem',
-				})}
+			<a
+				href={routes.clients.index.href()}
+				class="breadcrumb"
 			>
-				<div>
-					<a
-						href={routes.clients.index.href()}
-						mix={css({
-							fontSize: '0.8rem',
-							color: '#666',
-							textDecoration: 'none',
-							'&:hover': { color: '#818cf8' },
-						})}
-					>
-						← Clients
-					</a>
-					<h1
-						mix={css({
-							margin: '0.25rem 0 0',
-							fontSize: '1.5rem',
-							fontWeight: 700,
-						})}
-					>
-						{client.name}
-					</h1>
-					{client.company && (
-						<div
-							mix={css({
-								fontSize: '0.875rem',
-								color: '#888',
-								marginTop: '0.25rem',
-							})}
-						>
-							{client.company}
-						</div>
-					)}
-				</div>
+				← Back to clients
+			</a>
 
-				<div mix={css({ display: 'flex', gap: '0.5rem' })}>
-					<a
-						href={routes.clients.edit.href({ clientId: client.id })}
-						class="btn btn-secondary"
-					>
-						Edit
-					</a>
-					<RestfulForm
-						method="DELETE"
-						action={routes.clients.destroy.href({ clientId: client.id })}
-					>
-						<button
-							type="submit"
-							class="btn btn-danger"
+			<PageHeader
+				eyebrow="Client"
+				title={client.name}
+				subtitle={client.company || 'Independent client'}
+				actions={
+					<>
+						<a
+							href={routes.clients.edit.href({ clientId: client.id })}
+							class="btn btn-secondary"
 						>
-							Delete
-						</button>
-					</RestfulForm>
-				</div>
-			</div>
+							Edit client
+						</a>
+						<RestfulForm
+							method="DELETE"
+							action={routes.clients.destroy.href({ clientId: client.id })}
+						>
+							<button
+								type="submit"
+								class="btn btn-danger"
+							>
+								Delete
+							</button>
+						</RestfulForm>
+					</>
+				}
+			/>
 
-			<div
-				mix={css({
-					display: 'grid',
-					gridTemplateColumns: '1fr 1fr',
-					gap: '1.5rem',
-					marginBottom: '2rem',
-				})}
-			>
-				<div
-					mix={css({
-						background: '#1a1a1a',
-						borderRadius: '8px',
-						padding: '1.25rem',
-						border: '1px solid #2a2a2a',
-					})}
+			<div class="detail-grid">
+				<SectionCard
+					title="Contact details"
+					subtitle="The basics you need when it’s time to follow up or invoice."
 				>
-					<h2
-						mix={css({
-							margin: '0 0 1rem',
-							fontSize: '0.875rem',
-							color: '#666',
-							textTransform: 'uppercase',
-							letterSpacing: '0.05em',
-						})}
-					>
-						Contact
-					</h2>
-					<dl
-						mix={css({
-							display: 'flex',
-							flexDirection: 'column',
-							gap: '0.75rem',
-							margin: 0,
-						})}
-					>
+					<dl class="detail-list">
 						<div>
-							<dt
-								mix={css({
-									fontSize: '0.75rem',
-									color: '#555',
-									marginBottom: '0.2rem',
-								})}
-							>
-								Email
-							</dt>
-							<dd mix={css({ margin: 0, fontSize: '0.875rem' })}>
-								<a
-									href={`mailto:${client.email}`}
-									mix={css({ color: '#818cf8', textDecoration: 'none' })}
-								>
-									{client.email}
-								</a>
+							<dt>Email</dt>
+							<dd>
+								<a href={`mailto:${client.email}`}>{client.email}</a>
 							</dd>
 						</div>
 						<div>
-							<dt
-								mix={css({
-									fontSize: '0.75rem',
-									color: '#555',
-									marginBottom: '0.2rem',
-								})}
-							>
-								Hourly Rate
-							</dt>
-							<dd
-								mix={css({ margin: 0, fontSize: '0.875rem', fontWeight: 600 })}
-							>
-								{formatCurrency(client.hourlyRate)}/hr
-							</dd>
+							<dt>Hourly rate</dt>
+							<dd>{formatCurrency(client.hourlyRate)}/hr</dd>
 						</div>
 						<div>
-							<dt
-								mix={css({
-									fontSize: '0.75rem',
-									color: '#555',
-									marginBottom: '0.2rem',
-								})}
-							>
-								Client Since
-							</dt>
-							<dd mix={css({ margin: 0, fontSize: '0.875rem' })}>
-								{formatDate(client.createdAt)}
-							</dd>
+							<dt>Company</dt>
+							<dd>{client.company || 'Not set'}</dd>
+						</div>
+						<div>
+							<dt>Client since</dt>
+							<dd>{formatDate(client.createdAt)}</dd>
 						</div>
 					</dl>
-				</div>
+				</SectionCard>
 
-				<div
-					mix={css({
-						background: '#1a1a1a',
-						borderRadius: '8px',
-						padding: '1.25rem',
-						border: '1px solid #2a2a2a',
-					})}
+				<SectionCard
+					title="Relationship snapshot"
+					subtitle="A quick read on how much work is tied to this client."
+					tone="tint"
 				>
-					<h2
-						mix={css({
-							margin: '0 0 1rem',
-							fontSize: '0.875rem',
-							color: '#666',
-							textTransform: 'uppercase',
-							letterSpacing: '0.05em',
-						})}
-					>
-						Stats
-					</h2>
-					<dl
-						mix={css({
-							display: 'flex',
-							flexDirection: 'column',
-							gap: '0.75rem',
-							margin: 0,
-						})}
-					>
-						<div>
-							<dt
-								mix={css({
-									fontSize: '0.75rem',
-									color: '#555',
-									marginBottom: '0.2rem',
-								})}
-							>
-								Projects
-							</dt>
-							<dd
-								mix={css({ margin: 0, fontSize: '1.25rem', fontWeight: 700 })}
-							>
-								{projects.length}
-							</dd>
+					<div class="triptych-grid">
+						<div class="metric-card">
+							<div class="metric-label">Projects</div>
+							<div class="metric-value">{String(projects.length)}</div>
 						</div>
-						<div>
-							<dt
-								mix={css({
-									fontSize: '0.75rem',
-									color: '#555',
-									marginBottom: '0.2rem',
-								})}
-							>
-								Active Projects
-							</dt>
-							<dd
-								mix={css({ margin: 0, fontSize: '1.25rem', fontWeight: 700 })}
-							>
-								{projects.filter((p) => p.status === 'active').length}
-							</dd>
+						<div class="metric-card">
+							<div class="metric-label">Active</div>
+							<div class="metric-value">
+								{String(
+									projects.filter((project) => project.status === 'active')
+										.length,
+								)}
+							</div>
 						</div>
-					</dl>
-				</div>
+						<div class="metric-card">
+							<div class="metric-label">Default rate</div>
+							<div class="metric-value">
+								{formatCurrency(client.hourlyRate)}
+							</div>
+						</div>
+					</div>
+				</SectionCard>
 			</div>
 
-			<div>
-				<div
-					mix={css({
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
-						marginBottom: '1rem',
-					})}
-				>
-					<h2 mix={css({ margin: 0, fontSize: '1rem', fontWeight: 600 })}>
-						Projects
-					</h2>
+			<SectionCard
+				title="Projects for this client"
+				subtitle="Open a project to track work sessions or review totals."
+				actions={
 					<a
 						href={`${routes.projects.new.href()}?clientId=${client.id}`}
-						class="btn btn-secondary"
-						mix={css({ fontSize: '0.8rem' })}
+						class="btn btn-primary btn-sm"
 					>
-						+ New Project
+						New project
 					</a>
-				</div>
-
+				}
+			>
 				{projects.length === 0 ? (
-					<p mix={css({ color: '#555', fontSize: '0.875rem' })}>
-						No projects yet.
-					</p>
+					<EmptyState
+						title="No projects yet"
+						description="Create a project for this client so you can start tracking time against real work."
+					/>
 				) : (
-					<div
-						mix={css({
-							background: '#1a1a1a',
-							borderRadius: '8px',
-							border: '1px solid #2a2a2a',
-							overflow: 'hidden',
-						})}
-					>
+					<div class="list-stack">
 						{projects.map((project) => (
-							<a
-								href={routes.projects.show.href({ projectId: project.id })}
-								mix={css({
-									display: 'flex',
-									justifyContent: 'space-between',
-									alignItems: 'center',
-									padding: '0.875rem 1rem',
-									textDecoration: 'none',
-									color: '#e8e8e8',
-									borderBottom: '1px solid #1e1e1e',
-									'&:last-child': { borderBottom: 'none' },
-									'&:hover': { background: '#1f1f1f' },
-								})}
-							>
-								<div>
-									<div mix={css({ fontSize: '0.875rem', fontWeight: 500 })}>
-										{project.name}
-									</div>
-									{project.description && (
-										<div
-											mix={css({
-												fontSize: '0.75rem',
-												color: '#666',
-												marginTop: '0.2rem',
+							<div class="list-item">
+								<div class="list-item-primary">
+									<p class="list-item-title">
+										<a
+											href={routes.projects.show.href({
+												projectId: project.id,
 											})}
 										>
-											{project.description}
-										</div>
-									)}
+											{project.name}
+										</a>
+									</p>
+									<p class="list-item-text">
+										{project.description || 'No project summary yet.'}
+									</p>
 								</div>
-								<div
-									mix={css({
-										display: 'flex',
-										alignItems: 'center',
-										gap: '0.75rem',
-									})}
-								>
+								<div class="list-item-side">
 									{project.rateOverride && (
-										<span mix={css({ fontSize: '0.75rem', color: '#888' })}>
-											{formatCurrency(project.rateOverride)}/hr
-										</span>
+										<div class="value-block">
+											<div class="value-label">Custom rate</div>
+											<div class="value-main">
+												{formatCurrency(project.rateOverride)}/hr
+											</div>
+										</div>
 									)}
 									<span class={`badge badge-${project.status}`}>
 										{project.status}
 									</span>
 								</div>
-							</a>
+							</div>
 						))}
 					</div>
 				)}
-			</div>
+			</SectionCard>
 		</Layout>
 	);
+};

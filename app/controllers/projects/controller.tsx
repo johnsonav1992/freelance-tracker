@@ -35,7 +35,7 @@ export default {
 				orderBy: ['name', 'asc'],
 				with: { client: projectClient },
 			});
-			console.dir({allProjects}, { depth: null });
+			console.dir({ allProjects }, { depth: null });
 
 			const typed = allProjects.filter(
 				(
@@ -68,8 +68,15 @@ export default {
 		async create({ get }) {
 			const db = get(Database);
 			const formData = get(FormData);
-			const { clientId, name, description, status, rateOverride, manualHours, manualAmount } =
-				s.parse(projectSchema, formData);
+			const {
+				clientId,
+				name,
+				description,
+				status,
+				rateOverride,
+				manualHours,
+				manualAmount,
+			} = s.parse(projectSchema, formData);
 			const now = Date.now();
 
 			await db.create(projects, {
@@ -162,8 +169,15 @@ export default {
 				return new Response('Project not found', { status: 404 });
 			}
 
-			const { clientId, name, description, status, rateOverride, manualHours, manualAmount } =
-				s.parse(projectSchema, formData);
+			const {
+				clientId,
+				name,
+				description,
+				status,
+				rateOverride,
+				manualHours,
+				manualAmount,
+			} = s.parse(projectSchema, formData);
 
 			await db.update(projects, project.id, {
 				clientId: parseInt(clientId, 10),

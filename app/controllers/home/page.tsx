@@ -1,8 +1,13 @@
-import { css } from 'remix/component';
 import { Timer } from '../../assets/timer.tsx';
 import type { Client, Invoice, Project, TimeEntry } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
 import { Layout } from '../../ui/Layout.tsx';
+import {
+	EmptyState,
+	MetricCard,
+	PageHeader,
+	SectionCard,
+} from '../../ui/Screen.tsx';
 import { formatCurrency, formatDuration } from '../../utils/format.ts';
 
 export interface DashboardPageProps {
@@ -15,9 +20,8 @@ export interface DashboardPageProps {
 	recentInvoices: (Invoice & { client: Client })[];
 }
 
-export const DashboardPage =
-	() =>
-	({
+export const DashboardPage = () => {
+	return ({
 		clientCount,
 		activeProjectCount,
 		unbilledMs,
@@ -30,250 +34,197 @@ export const DashboardPage =
 			title="Dashboard"
 			activeNav="home"
 		>
-			{runningEntry && (
-				<div
-					mix={css({
-						background: '#1a1a2e',
-						border: '1px solid #818cf8',
-						borderRadius: '8px',
-						padding: '1rem 1.25rem',
-						marginBottom: '1.5rem',
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'space-between',
-					})}
-				>
-					<div>
-						<div
-							mix={css({
-								fontSize: '0.75rem',
-								color: '#818cf8',
-								marginBottom: '0.25rem',
-							})}
-						>
-							Timer running
-						</div>
-						<div mix={css({ fontSize: '0.875rem', fontWeight: 500 })}>
-							{runningEntry.project.client.name} — {runningEntry.project.name}
-						</div>
-						{runningEntry.description && (
-							<div
-								mix={css({
-									fontSize: '0.8rem',
-									color: '#888',
-									marginTop: '0.2rem',
-								})}
-							>
-								{runningEntry.description}
-							</div>
-						)}
-					</div>
-					<Timer
-						setup={{
-							entryId: runningEntry.id,
-							startedAt: runningEntry.startedAt,
-						}}
-					/>
-				</div>
-			)}
-
-			<div
-				mix={css({
-					display: 'grid',
-					gridTemplateColumns: 'repeat(4, 1fr)',
-					gap: '1rem',
-					marginBottom: '2rem',
-				})}
-			>
-				<StatCard
-					label="Clients"
-					value={String(clientCount)}
-				/>
-				<StatCard
-					label="Active Projects"
-					value={String(activeProjectCount)}
-				/>
-				<StatCard
-					label="Unbilled Time"
-					value={formatDuration(unbilledMs)}
-				/>
-				<StatCard
-					label="Outstanding"
-					value={formatCurrency(outstandingAmount)}
-				/>
-			</div>
-
-			<div
-				mix={css({
-					display: 'grid',
-					gridTemplateColumns: '1fr 1fr',
-					gap: '1.5rem',
-				})}
-			>
-				<div>
-					<div
-						mix={css({
-							display: 'flex',
-							justifyContent: 'space-between',
-							alignItems: 'center',
-							marginBottom: '1rem',
-						})}
-					>
-						<h2 mix={css({ margin: 0, fontSize: '1rem', fontWeight: 600 })}>
-							Quick Actions
-						</h2>
-					</div>
-					<div
-						mix={css({
-							display: 'flex',
-							flexDirection: 'column',
-							gap: '0.5rem',
-						})}
-					>
-						<a
-							href={routes.clients.new.href()}
-							class="btn btn-secondary"
-						>
-							+ New Client
-						</a>
-						<a
-							href={routes.projects.new.href()}
-							class="btn btn-secondary"
-						>
-							+ New Project
-						</a>
+			<PageHeader
+				eyebrow="Overview"
+				title="Keep the business side easy."
+				subtitle="The dashboard keeps today’s work, unbilled time, and invoice follow-ups in one place so you can act without hunting around."
+				actions={
+					<>
 						<a
 							href={routes.time.new.href()}
-							class="btn btn-secondary"
+							class="btn btn-primary"
 						>
-							+ Log Time
+							Log time
 						</a>
 						<a
 							href={routes.invoices.new.href()}
-							class="btn btn-primary"
+							class="btn btn-secondary"
 						>
-							Create Invoice
+							Create invoice
 						</a>
-					</div>
-				</div>
+					</>
+				}
+			/>
 
-				<div>
-					<div
-						mix={css({
-							display: 'flex',
-							justifyContent: 'space-between',
-							alignItems: 'center',
-							marginBottom: '1rem',
-						})}
-					>
-						<h2 mix={css({ margin: 0, fontSize: '1rem', fontWeight: 600 })}>
-							Recent Invoices
-						</h2>
-						<a
-							href={routes.invoices.index.href()}
-							mix={css({ fontSize: '0.8rem', color: '#818cf8' })}
-						>
-							View all
-						</a>
+			{runningEntry && (
+				<SectionCard
+					title="Timer running"
+					subtitle={`${runningEntry.project.client.name} • ${runningEntry.project.name}`}
+					actions={
+						<Timer
+							setup={{
+								entryId: runningEntry.id,
+								startedAt: runningEntry.startedAt,
+							}}
+						/>
+					}
+					tone="highlight"
+				>
+					<p class="list-item-text">
+						{runningEntry.description || 'No session notes yet.'}
+					</p>
+				</SectionCard>
+			)}
+
+			<div class="metric-grid">
+				<MetricCard
+					label="Clients"
+					value={String(clientCount)}
+					note="Active relationships you’re managing."
+				/>
+				<MetricCard
+					label="Active projects"
+					value={String(activeProjectCount)}
+					note="Work that still needs attention."
+				/>
+				<MetricCard
+					label="Unbilled time"
+					value={formatDuration(unbilledMs)}
+					note={
+						unbilledAmount > 0
+							? formatCurrency(unbilledAmount)
+							: 'Nothing ready to invoice.'
+					}
+					tone="accent"
+				/>
+				<MetricCard
+					label="Outstanding"
+					value={formatCurrency(outstandingAmount)}
+					note="Invoices marked sent but not yet paid."
+				/>
+			</div>
+
+			<div class="split-grid">
+				<SectionCard
+					title="Next actions"
+					subtitle="The fastest paths through your regular admin work."
+					tone="tint"
+				>
+					<div class="list-stack">
+						<ActionRow
+							href={routes.clients.new.href()}
+							title="Add a client"
+							copy="Start a new relationship with contact details and an hourly rate."
+						/>
+						<ActionRow
+							href={routes.projects.new.href()}
+							title="Create a project"
+							copy="Attach work to a client so time and invoices stay organized."
+						/>
+						<ActionRow
+							href={routes.time.new.href()}
+							title="Log time"
+							copy="Capture completed work or clean up a recent session."
+						/>
+						<ActionRow
+							href={routes.invoices.new.href()}
+							title="Invoice unbilled work"
+							copy="Turn tracked time into money without leaving the app."
+						/>
 					</div>
+				</SectionCard>
+
+				<SectionCard
+					title="Recent invoices"
+					subtitle="Keep an eye on what’s drafted, sent, or paid."
+				>
 					{recentInvoices.length === 0 ? (
-						<p mix={css({ color: '#555', fontSize: '0.875rem' })}>
-							No invoices yet.
-						</p>
+						<EmptyState
+							title="No invoices yet"
+							description="When you create invoices, they’ll show up here so you can track status quickly."
+						/>
 					) : (
-						<div
-							mix={css({
-								display: 'flex',
-								flexDirection: 'column',
-								gap: '0.5rem',
-							})}
-						>
+						<div class="list-stack">
 							{recentInvoices.map((invoice) => (
-								<a
-									href={routes.invoices.show.href({ invoiceId: invoice.id })}
-									mix={css({
-										display: 'flex',
-										justifyContent: 'space-between',
-										alignItems: 'center',
-										padding: '0.75rem',
-										background: '#1a1a1a',
-										borderRadius: '6px',
-										textDecoration: 'none',
-										color: '#e8e8e8',
-										'&:hover': { background: '#222' },
-									})}
-								>
-									<div>
-										<div mix={css({ fontSize: '0.875rem', fontWeight: 500 })}>
-											{invoice.number}
-										</div>
-										<div mix={css({ fontSize: '0.75rem', color: '#888' })}>
-											{invoice.client.name}
+								<div class="list-item">
+									<div class="list-item-primary">
+										<p class="list-item-title">
+											<a
+												href={routes.invoices.show.href({
+													invoiceId: invoice.id,
+												})}
+											>
+												<span class="mono">{invoice.number}</span>
+											</a>
+										</p>
+										<div class="meta-row">
+											<strong>{invoice.client.name}</strong>
 										</div>
 									</div>
-									<span class={`badge badge-${invoice.status}`}>
-										{invoice.status}
-									</span>
-								</a>
+									<div class="list-item-side">
+										<span class={`badge badge-${invoice.status}`}>
+											{invoice.status}
+										</span>
+										<a
+											href={routes.invoices.show.href({
+												invoiceId: invoice.id,
+											})}
+											class="btn btn-secondary btn-sm"
+										>
+											Open
+										</a>
+									</div>
+								</div>
 							))}
 						</div>
 					)}
-				</div>
+				</SectionCard>
 			</div>
 
 			{unbilledAmount > 0 && (
-				<div
-					mix={css({
-						marginTop: '1.5rem',
-						padding: '1rem 1.25rem',
-						background: '#1a1a1a',
-						borderRadius: '8px',
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
-					})}
-				>
+				<div class="callout">
 					<div>
-						<div mix={css({ fontSize: '0.875rem', fontWeight: 500 })}>
-							{formatCurrency(unbilledAmount)} unbilled
-						</div>
-						<div mix={css({ fontSize: '0.75rem', color: '#888' })}>
-							{formatDuration(unbilledMs)} across active projects
-						</div>
+						<h2 class="callout-title">
+							{formatCurrency(unbilledAmount)} is ready to invoice
+						</h2>
+						<p class="callout-copy">
+							You have {formatDuration(unbilledMs)} of finished billable time
+							waiting to be turned into an invoice.
+						</p>
 					</div>
 					<a
 						href={routes.invoices.new.href()}
-						class="btn btn-primary btn-sm"
+						class="btn btn-primary"
 					>
-						Create Invoice
+						Review unbilled work
 					</a>
 				</div>
 			)}
 		</Layout>
 	);
+};
 
-const StatCard =
-	() =>
-	({ label, value }: { label: string; value: string }) => (
-		<div
-			mix={css({
-				background: '#1a1a1a',
-				borderRadius: '8px',
-				padding: '1.25rem',
-				border: '1px solid #2a2a2a',
-			})}
+const ActionRow = () => {
+	return ({
+		href,
+		title,
+		copy,
+	}: {
+		href: string;
+		title: string;
+		copy: string;
+	}) => (
+		<a
+			href={href}
+			class="list-item"
 		>
-			<div
-				mix={css({
-					fontSize: '0.75rem',
-					color: '#666',
-					marginBottom: '0.5rem',
-					textTransform: 'uppercase',
-					letterSpacing: '0.05em',
-				})}
-			>
-				{label}
+			<div class="list-item-primary">
+				<p class="list-item-title">{title}</p>
+				<p class="list-item-text">{copy}</p>
 			</div>
-			<div mix={css({ fontSize: '1.5rem', fontWeight: 700 })}>{value}</div>
-		</div>
+			<div class="list-item-side">
+				<span class="meta-chip meta-chip-accent">Open</span>
+			</div>
+		</a>
 	);
+};

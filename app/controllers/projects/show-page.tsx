@@ -1,18 +1,17 @@
-import { css } from 'remix/component';
 import { Timer } from '../../assets/timer.tsx';
 import type { Client, Project, TimeEntry } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
+import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
 import {
 	formatCurrency,
 	formatDate,
 	formatDuration,
 } from '../../utils/format.ts';
 
-export const ProjectShowPage =
-	() =>
-	({
+export const ProjectShowPage = () => {
+	return ({
 		project,
 		client,
 		entries,
@@ -24,14 +23,14 @@ export const ProjectShowPage =
 		runningEntry: TimeEntry | null;
 	}) => {
 		const effectiveRate = project.rateOverride ?? client.hourlyRate;
-		const finishedEntries = entries.filter((e) => e.endedAt !== null);
+		const finishedEntries = entries.filter((entry) => entry.endedAt !== null);
 		const trackedMs = finishedEntries.reduce(
-			(sum, e) => sum + ((e.endedAt ?? 0) - e.startedAt),
+			(sum, entry) => sum + ((entry.endedAt ?? 0) - entry.startedAt),
 			0,
 		);
 		const totalMs = trackedMs + (project.manualHours ?? 0) * 3600000;
-		const trackedAmount = finishedEntries.reduce((sum, e) => {
-			const hours = ((e.endedAt ?? 0) - e.startedAt) / 3600000;
+		const trackedAmount = finishedEntries.reduce((sum, entry) => {
+			const hours = ((entry.endedAt ?? 0) - entry.startedAt) / 3600000;
 			return sum + hours * effectiveRate;
 		}, 0);
 		const totalAmount =
@@ -43,254 +42,253 @@ export const ProjectShowPage =
 				title={project.name}
 				activeNav="projects"
 			>
-				<div
-					mix={css({
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'flex-start',
-						marginBottom: '1.5rem',
-					})}
+				<a
+					href={routes.projects.index.href()}
+					class="breadcrumb"
 				>
-					<div>
-						<a
-							href={routes.projects.index.href()}
-							mix={css({
-								fontSize: '0.8rem',
-								color: '#666',
-								textDecoration: 'none',
-								'&:hover': { color: '#818cf8' },
-							})}
-						>
-							← Projects
-						</a>
-						<h1
-							mix={css({
-								margin: '0.25rem 0 0',
-								fontSize: '1.5rem',
-								fontWeight: 700,
-							})}
-						>
-							{project.name}
-						</h1>
-						<div
-							mix={css({
-								fontSize: '0.875rem',
-								color: '#888',
-								marginTop: '0.25rem',
-							})}
-						>
-							<a
-								href={routes.clients.show.href({ clientId: client.id })}
-								mix={css({
-									color: '#888',
-									textDecoration: 'none',
-									'&:hover': { color: '#818cf8' },
-								})}
-							>
-								{client.name}
-							</a>
-						</div>
-					</div>
+					← Back to projects
+				</a>
 
-					<div mix={css({ display: 'flex', gap: '0.5rem' })}>
-						{!runningEntry && (
-							<form
-								method="POST"
-								action={routes.time.create.href()}
+				<PageHeader
+					eyebrow="Project"
+					title={project.name}
+					subtitle={`For ${client.name}`}
+					actions={
+						<>
+							{!runningEntry && (
+								<form
+									method="POST"
+									action={routes.time.create.href()}
+								>
+									<input
+										type="hidden"
+										name="projectId"
+										value={project.id}
+									/>
+									<input
+										type="hidden"
+										name="billable"
+										value="true"
+									/>
+									<button
+										type="submit"
+										class="btn btn-primary"
+									>
+										Start timer
+									</button>
+								</form>
+							)}
+							<a
+								href={routes.projects.edit.href({ projectId: project.id })}
+								class="btn btn-secondary"
 							>
-								<input
-									type="hidden"
-									name="projectId"
-									value={project.id}
-								/>
-								<input
-									type="hidden"
-									name="billable"
-									value="true"
-								/>
+								Edit project
+							</a>
+							<RestfulForm
+								method="DELETE"
+								action={routes.projects.destroy.href({ projectId: project.id })}
+							>
 								<button
 									type="submit"
-									class="btn btn-primary"
+									class="btn btn-danger"
 								>
-									▶ Start Timer
+									Delete
 								</button>
-							</form>
-						)}
-						<a
-							href={routes.projects.edit.href({ projectId: project.id })}
-							class="btn btn-secondary"
-						>
-							Edit
-						</a>
-						<RestfulForm
-							method="DELETE"
-							action={routes.projects.destroy.href({ projectId: project.id })}
-						>
-							<button
-								type="submit"
-								class="btn btn-danger"
-							>
-								Delete
-							</button>
-						</RestfulForm>
-					</div>
-				</div>
+							</RestfulForm>
+						</>
+					}
+				/>
 
 				{runningEntry && (
-					<div
-						mix={css({
-							background: '#1a1a2e',
-							border: '1px solid #818cf8',
-							borderRadius: '8px',
-							padding: '1rem 1.25rem',
-							marginBottom: '1.5rem',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'space-between',
-						})}
+					<SectionCard
+						title="Timer running"
+						subtitle="You can stop it here or jump into the time log later."
+						actions={
+							<Timer
+								setup={{
+									entryId: runningEntry.id,
+									startedAt: runningEntry.startedAt,
+								}}
+							/>
+						}
+						tone="highlight"
 					>
-						<div mix={css({ fontSize: '0.875rem', color: '#818cf8' })}>
-							Timer running
-						</div>
-						<Timer
-							setup={{
-								entryId: runningEntry.id,
-								startedAt: runningEntry.startedAt,
-							}}
-						/>
-					</div>
+						<p class="list-item-text">
+							{runningEntry.description || 'No session notes yet.'}
+						</p>
+					</SectionCard>
 				)}
 
-				<div
-					mix={css({
-						display: 'grid',
-						gridTemplateColumns: 'repeat(3, 1fr)',
-						gap: '1rem',
-						marginBottom: '2rem',
-					})}
-				>
-					<StatCard
-						label="Total Time"
-						value={formatDuration(totalMs)}
-					/>
-					<StatCard
-						label="Total Earned"
-						value={formatCurrency(totalAmount)}
-					/>
-					<StatCard
-						label="Rate"
-						value={`${formatCurrency(effectiveRate)}/hr`}
-					/>
+				<div class="triptych-grid">
+					<div class="metric-card metric-card-accent">
+						<div class="metric-label">Total time</div>
+						<div class="metric-value">{formatDuration(totalMs)}</div>
+						<div class="metric-note">
+							Tracked time plus{' '}
+							{project.manualHours ? `${project.manualHours}h` : 'no'} manual
+							carry-over.
+						</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-label">Total earned</div>
+						<div class="metric-value">{formatCurrency(totalAmount)}</div>
+						<div class="metric-note">Based on the current effective rate.</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-label">Effective rate</div>
+						<div class="metric-value">{formatCurrency(effectiveRate)}</div>
+						<div class="metric-note">
+							{project.rateOverride
+								? 'Using project-specific pricing.'
+								: 'Using the client default rate.'}
+						</div>
+					</div>
 				</div>
 
-				<div>
-					<div
-						mix={css({
-							display: 'flex',
-							justifyContent: 'space-between',
-							alignItems: 'center',
-							marginBottom: '1rem',
-						})}
+				<div class="detail-grid">
+					<SectionCard
+						title="Project details"
+						subtitle="The settings that drive pricing and status."
 					>
-						<h2 mix={css({ margin: 0, fontSize: '1rem', fontWeight: 600 })}>
-							Time Entries
-						</h2>
+						<dl class="detail-list">
+							<div>
+								<dt>Client</dt>
+								<dd>
+									<a href={routes.clients.show.href({ clientId: client.id })}>
+										{client.name}
+									</a>
+								</dd>
+							</div>
+							<div>
+								<dt>Status</dt>
+								<dd>
+									<span class={`badge badge-${project.status}`}>
+										{project.status}
+									</span>
+								</dd>
+							</div>
+							<div>
+								<dt>Rate override</dt>
+								<dd>
+									{project.rateOverride
+										? `${formatCurrency(project.rateOverride)}/hr`
+										: 'Using client default'}
+								</dd>
+							</div>
+							<div>
+								<dt>Manual amount</dt>
+								<dd>
+									{project.manualAmount
+										? formatCurrency(project.manualAmount)
+										: 'Not set'}
+								</dd>
+							</div>
+						</dl>
+						<p class="list-item-text">
+							{project.description || 'No project summary added.'}
+						</p>
+					</SectionCard>
+
+					<SectionCard
+						title="Time health"
+						subtitle="Useful context before you invoice or pause the work."
+						tone="tint"
+					>
+						<dl class="detail-list">
+							<div>
+								<dt>Tracked sessions</dt>
+								<dd>{String(entries.length)}</dd>
+							</div>
+							<div>
+								<dt>Finished sessions</dt>
+								<dd>{String(finishedEntries.length)}</dd>
+							</div>
+							<div>
+								<dt>Tracked amount</dt>
+								<dd>{formatCurrency(trackedAmount)}</dd>
+							</div>
+							<div>
+								<dt>Manual carry-over</dt>
+								<dd>
+									{project.manualHours ? `${project.manualHours}h` : 'None'}
+								</dd>
+							</div>
+						</dl>
+					</SectionCard>
+				</div>
+
+				<SectionCard
+					title="Time entries"
+					subtitle="Everything logged against this project."
+					actions={
 						<a
 							href={`${routes.time.new.href()}?projectId=${project.id}`}
-							class="btn btn-secondary"
-							mix={css({ fontSize: '0.8rem' })}
+							class="btn btn-primary btn-sm"
 						>
-							+ Log Time
+							Log time
 						</a>
-					</div>
-
+					}
+				>
 					{entries.length === 0 ? (
-						<p mix={css({ color: '#555', fontSize: '0.875rem' })}>
-							No time logged yet.
-						</p>
+						<EmptyState
+							title="No time logged yet"
+							description="Track a session or add a manual entry so this project starts building useful history."
+						/>
 					) : (
-						<div
-							mix={css({
-								background: '#1a1a1a',
-								borderRadius: '8px',
-								border: '1px solid #2a2a2a',
-								overflow: 'hidden',
-							})}
-						>
+						<div class="list-stack">
 							{entries.map((entry) => {
 								const ms =
 									entry.endedAt !== null
 										? entry.endedAt - entry.startedAt
 										: null;
-								const hours = ms !== null ? ms / 3600000 : null;
-								const amount = hours !== null ? hours * effectiveRate : null;
+								const amount =
+									ms !== null ? (ms / 3600000) * effectiveRate : null;
 
 								return (
-									<div
-										mix={css({
-											display: 'flex',
-											justifyContent: 'space-between',
-											alignItems: 'center',
-											padding: '0.75rem 1rem',
-											borderBottom: '1px solid #1e1e1e',
-											'&:last-child': { borderBottom: 'none' },
-										})}
-									>
-										<div>
-											<div mix={css({ fontSize: '0.875rem' })}>
-												{entry.description ?? (
-													<span mix={css({ color: '#555' })}>
-														No description
+									<div class="list-item">
+										<div class="list-item-primary">
+											<p class="list-item-title">
+												{entry.description || 'No work note added.'}
+											</p>
+											<div class="meta-row">
+												<span>{formatDate(entry.startedAt)}</span>
+												{entry.billable && (
+													<span class="meta-chip meta-chip-success">
+														Billable
+													</span>
+												)}
+												{entry.invoiceId && (
+													<span class="meta-chip meta-chip-accent">
+														Invoiced
 													</span>
 												)}
 											</div>
-											<div
-												mix={css({
-													fontSize: '0.75rem',
-													color: '#555',
-													marginTop: '0.2rem',
-												})}
-											>
-												{formatDate(entry.startedAt)}
-											</div>
 										</div>
-										<div
-											mix={css({
-												display: 'flex',
-												alignItems: 'center',
-												gap: '1rem',
-												textAlign: 'right',
-											})}
-										>
-											<div>
-												{ms !== null ? (
-													<div mix={css({ fontSize: '0.875rem' })}>
-														{formatDuration(ms)}
-													</div>
-												) : (
-													<Timer
-														setup={{
-															entryId: entry.id,
-															startedAt: entry.startedAt,
-														}}
-													/>
-												)}
+										<div class="list-item-side">
+											<div class="value-block">
+												<div class="value-label">
+													{ms === null ? 'Elapsed' : 'Duration'}
+												</div>
+												<div class="value-main">
+													{ms !== null ? (
+														formatDuration(ms)
+													) : (
+														<Timer
+															setup={{
+																entryId: entry.id,
+																startedAt: entry.startedAt,
+															}}
+														/>
+													)}
+												</div>
 												{amount !== null && (
-													<div
-														mix={css({ fontSize: '0.75rem', color: '#888' })}
-													>
-														{formatCurrency(amount)}
-													</div>
+													<div class="value-sub">{formatCurrency(amount)}</div>
 												)}
 											</div>
-											<div mix={css({ display: 'flex', gap: '0.4rem' })}>
+											<div class="inline-actions">
 												<a
 													href={routes.time.edit.href({ entryId: entry.id })}
-													class="btn btn-secondary"
-													mix={css({
-														fontSize: '0.75rem',
-														padding: '0.2rem 0.5rem',
-													})}
+													class="btn btn-secondary btn-sm"
 												>
 													Edit
 												</a>
@@ -303,11 +301,7 @@ export const ProjectShowPage =
 												>
 													<button
 														type="submit"
-														class="btn btn-danger"
-														mix={css({
-															fontSize: '0.75rem',
-															padding: '0.2rem 0.5rem',
-														})}
+														class="btn btn-danger btn-sm"
 													>
 														Delete
 													</button>
@@ -319,33 +313,8 @@ export const ProjectShowPage =
 							})}
 						</div>
 					)}
-				</div>
+				</SectionCard>
 			</Layout>
 		);
 	};
-
-const StatCard =
-	() =>
-	({ label, value }: { label: string; value: string }) => (
-		<div
-			mix={css({
-				background: '#1a1a1a',
-				borderRadius: '8px',
-				padding: '1.25rem',
-				border: '1px solid #2a2a2a',
-			})}
-		>
-			<div
-				mix={css({
-					fontSize: '0.75rem',
-					color: '#666',
-					marginBottom: '0.5rem',
-					textTransform: 'uppercase',
-					letterSpacing: '0.05em',
-				})}
-			>
-				{label}
-			</div>
-			<div mix={css({ fontSize: '1.5rem', fontWeight: 700 })}>{value}</div>
-		</div>
-	);
+};

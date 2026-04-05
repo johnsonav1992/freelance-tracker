@@ -1,14 +1,12 @@
-import { css } from 'remix/component';
-
 import type { Client, Invoice } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
+import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
 import { formatCurrency, formatDate } from '../../utils/format.ts';
 
-export const InvoicesIndexPage =
-	() =>
-	({
+export const InvoicesIndexPage = () => {
+	return ({
 		invoices,
 	}: {
 		invoices: (Invoice & { client: Client; total: number })[];
@@ -17,228 +15,101 @@ export const InvoicesIndexPage =
 			title="Invoices"
 			activeNav="invoices"
 		>
-			<div
-				mix={css({
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'center',
-					marginBottom: '1.5rem',
-				})}
-			>
-				<h1 mix={css({ margin: 0, fontSize: '1.5rem', fontWeight: 700 })}>
-					Invoices
-				</h1>
-				<a
-					href={routes.invoices.new.href()}
-					class="btn btn-primary"
-				>
-					+ Create Invoice
-				</a>
-			</div>
+			<PageHeader
+				eyebrow="Invoices"
+				title="Stay on top of what you’ve billed."
+				subtitle="Draft invoices, sent invoices, and paid invoices are all in one scan-friendly list."
+				actions={
+					<a
+						href={routes.invoices.new.href()}
+						class="btn btn-primary"
+					>
+						Create invoice
+					</a>
+				}
+			/>
 
 			{invoices.length === 0 ? (
-				<div
-					mix={css({
-						background: '#1a1a1a',
-						borderRadius: '8px',
-						padding: '3rem',
-						textAlign: 'center',
-						color: '#555',
-						border: '1px solid #2a2a2a',
-					})}
-				>
-					<p mix={css({ margin: 0 })}>No invoices yet.</p>
-				</div>
+				<EmptyState
+					title="No invoices yet"
+					description="Create an invoice from unbilled time when you’re ready to turn completed work into revenue."
+					action={
+						<a
+							href={routes.invoices.new.href()}
+							class="btn btn-primary"
+						>
+							Start invoicing
+						</a>
+					}
+				/>
 			) : (
-				<div
-					mix={css({
-						background: '#1a1a1a',
-						borderRadius: '8px',
-						border: '1px solid #2a2a2a',
-						overflow: 'hidden',
-					})}
+				<SectionCard
+					title={`${invoices.length} invoice${invoices.length === 1 ? '' : 's'}`}
+					subtitle="Open an invoice to review line items or update its status."
 				>
-					<table mix={css({ width: '100%', borderCollapse: 'collapse' })}>
-						<thead>
-							<tr mix={css({ borderBottom: '1px solid #2a2a2a' })}>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'left',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Invoice #
-								</th>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'left',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Client
-								</th>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'left',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Status
-								</th>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'left',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Issued
-								</th>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'right',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Total
-								</th>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'right',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Actions
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{invoices.map((invoice) => (
-								<tr
-									mix={css({
-										borderBottom: '1px solid #1e1e1e',
-										'&:last-child': { borderBottom: 'none' },
-										'&:hover': { background: '#1f1f1f' },
-									})}
-								>
-									<td mix={css({ padding: '0.75rem 1rem' })}>
+					<div class="list-stack">
+						{invoices.map((invoice) => (
+							<div class="list-item">
+								<div class="list-item-primary">
+									<p class="list-item-title">
 										<a
 											href={routes.invoices.show.href({
 												invoiceId: invoice.id,
 											})}
-											mix={css({
-												color: '#e8e8e8',
-												textDecoration: 'none',
-												fontWeight: 500,
-												fontFamily: 'monospace',
-												'&:hover': { color: '#818cf8' },
-											})}
 										>
-											{invoice.number}
+											<span class="mono">{invoice.number}</span>
 										</a>
-									</td>
-									<td
-										mix={css({
-											padding: '0.75rem 1rem',
-											color: '#888',
-											fontSize: '0.875rem',
-										})}
-									>
-										{invoice.client.name}
-									</td>
-									<td mix={css({ padding: '0.75rem 1rem' })}>
+									</p>
+									<p class="list-item-text">{invoice.client.name}</p>
+									<div class="meta-row">
 										<span class={`badge badge-${invoice.status}`}>
 											{invoice.status}
 										</span>
-									</td>
-									<td
-										mix={css({
-											padding: '0.75rem 1rem',
-											color: '#888',
-											fontSize: '0.875rem',
-										})}
-									>
-										{invoice.issuedAt ? formatDate(invoice.issuedAt) : '—'}
-									</td>
-									<td
-										mix={css({
-											padding: '0.75rem 1rem',
-											textAlign: 'right',
-											fontWeight: 600,
-										})}
-									>
-										{formatCurrency(invoice.total)}
-									</td>
-									<td
-										mix={css({ padding: '0.75rem 1rem', textAlign: 'right' })}
-									>
-										<div
-											mix={css({
-												display: 'flex',
-												gap: '0.5rem',
-												justifyContent: 'flex-end',
-											})}
-										>
-											<a
-												href={routes.invoices.show.href({
-													invoiceId: invoice.id,
-												})}
-												class="btn btn-secondary"
-												mix={css({
-													fontSize: '0.8rem',
-													padding: '0.25rem 0.625rem',
-												})}
-											>
-												View
-											</a>
-											<RestfulForm
-												method="DELETE"
-												action={routes.invoices.destroy.href({
-													invoiceId: invoice.id,
-												})}
-												class="form-contents"
-											>
-												<button
-													type="submit"
-													class="btn btn-danger"
-													mix={css({
-														fontSize: '0.8rem',
-														padding: '0.25rem 0.625rem',
-													})}
-												>
-													Delete
-												</button>
-											</RestfulForm>
+										<span class="meta-dot" />
+										<span>
+											{invoice.issuedAt
+												? `Issued ${formatDate(invoice.issuedAt)}`
+												: 'Not issued yet'}
+										</span>
+									</div>
+								</div>
+								<div class="list-item-side">
+									<div class="value-block">
+										<div class="value-label">Total</div>
+										<div class="value-main">
+											{formatCurrency(invoice.total)}
 										</div>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
+									</div>
+									<div class="inline-actions">
+										<a
+											href={routes.invoices.show.href({
+												invoiceId: invoice.id,
+											})}
+											class="btn btn-secondary btn-sm"
+										>
+											Open
+										</a>
+										<RestfulForm
+											method="DELETE"
+											action={routes.invoices.destroy.href({
+												invoiceId: invoice.id,
+											})}
+											class="form-contents"
+										>
+											<button
+												type="submit"
+												class="btn btn-danger btn-sm"
+											>
+												Delete
+											</button>
+										</RestfulForm>
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				</SectionCard>
 			)}
 		</Layout>
 	);
+};

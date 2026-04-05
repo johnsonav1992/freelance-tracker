@@ -1,212 +1,101 @@
-import { css } from 'remix/component';
-
 import type { Client } from '../../data/schema.ts';
 import { routes } from '../../routes.ts';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
-import { formatCurrency } from '../../utils/format.ts';
+import { EmptyState, PageHeader, SectionCard } from '../../ui/Screen.tsx';
+import { formatCurrency, formatDate } from '../../utils/format.ts';
 
-export const ClientsIndexPage =
-	() =>
-	({ clients }: { clients: Client[] }) => (
+export const ClientsIndexPage = () => {
+	return ({ clients }: { clients: Client[] }) => (
 		<Layout
 			title="Clients"
 			activeNav="clients"
 		>
-			<div
-				mix={css({
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'center',
-					marginBottom: '1.5rem',
-				})}
-			>
-				<h1 mix={css({ margin: 0, fontSize: '1.5rem', fontWeight: 700 })}>
-					Clients
-				</h1>
-				<a
-					href={routes.clients.new.href()}
-					class="btn btn-primary"
-				>
-					+ New Client
-				</a>
-			</div>
+			<PageHeader
+				eyebrow="Clients"
+				title="Keep your client list clean."
+				subtitle="Every client carries the contact details and baseline rate that the rest of the app relies on."
+				actions={
+					<a
+						href={routes.clients.new.href()}
+						class="btn btn-primary"
+					>
+						New client
+					</a>
+				}
+			/>
 
 			{clients.length === 0 ? (
-				<div
-					mix={css({
-						background: '#1a1a1a',
-						borderRadius: '8px',
-						padding: '3rem',
-						textAlign: 'center',
-						color: '#555',
-						border: '1px solid #2a2a2a',
-					})}
-				>
-					<p mix={css({ margin: 0 })}>
-						No clients yet. Add your first client to get started.
-					</p>
-				</div>
+				<EmptyState
+					title="No clients yet"
+					description="Create your first client so projects, tracked time, and invoices all have somewhere sensible to live."
+					action={
+						<a
+							href={routes.clients.new.href()}
+							class="btn btn-primary"
+						>
+							Create client
+						</a>
+					}
+				/>
 			) : (
-				<div
-					mix={css({
-						background: '#1a1a1a',
-						borderRadius: '8px',
-						border: '1px solid #2a2a2a',
-						overflow: 'hidden',
-					})}
+				<SectionCard
+					title={`${clients.length} client${clients.length === 1 ? '' : 's'}`}
+					subtitle="Open a client to see projects and contact details."
 				>
-					<table mix={css({ width: '100%', borderCollapse: 'collapse' })}>
-						<thead>
-							<tr mix={css({ borderBottom: '1px solid #2a2a2a' })}>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'left',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Name
-								</th>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'left',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Company
-								</th>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'left',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Email
-								</th>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'right',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Rate
-								</th>
-								<th
-									mix={css({
-										padding: '0.75rem 1rem',
-										textAlign: 'right',
-										fontSize: '0.75rem',
-										color: '#666',
-										textTransform: 'uppercase',
-										letterSpacing: '0.05em',
-									})}
-								>
-									Actions
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{clients.map((client) => (
-								<tr
-									mix={css({
-										borderBottom: '1px solid #1e1e1e',
-										'&:last-child': { borderBottom: 'none' },
-										'&:hover': { background: '#1f1f1f' },
-									})}
-								>
-									<td mix={css({ padding: '0.75rem 1rem' })}>
-										<a
-											href={routes.clients.show.href({ clientId: client.id })}
-											mix={css({
-												color: '#e8e8e8',
-												textDecoration: 'none',
-												fontWeight: 500,
-												'&:hover': { color: '#818cf8' },
-											})}
-										>
+					<div class="list-stack">
+						{clients.map((client) => (
+							<div class="list-item">
+								<div class="list-item-primary">
+									<p class="list-item-title">
+										<a href={routes.clients.show.href({ clientId: client.id })}>
 											{client.name}
 										</a>
-									</td>
-									<td
-										mix={css({
-											padding: '0.75rem 1rem',
-											color: '#888',
-											fontSize: '0.875rem',
-										})}
-									>
-										{client.company ?? '—'}
-									</td>
-									<td
-										mix={css({
-											padding: '0.75rem 1rem',
-											color: '#888',
-											fontSize: '0.875rem',
-										})}
-									>
-										{client.email}
-									</td>
-									<td
-										mix={css({
-											padding: '0.75rem 1rem',
-											textAlign: 'right',
-											fontSize: '0.875rem',
-										})}
-									>
-										{formatCurrency(client.hourlyRate)}/hr
-									</td>
-									<td
-										mix={css({ padding: '0.75rem 1rem', textAlign: 'right' })}
-									>
-										<div
-											mix={css({
-												display: 'flex',
-												gap: '0.5rem',
-												justifyContent: 'flex-end',
-											})}
-										>
-											<a
-												href={routes.clients.edit.href({ clientId: client.id })}
-												class="btn btn-secondary btn-sm"
-											>
-												Edit
-											</a>
-											<RestfulForm
-												method="DELETE"
-												action={routes.clients.destroy.href({
-													clientId: client.id,
-												})}
-												class="form-contents"
-											>
-												<button
-													type="submit"
-													class="btn btn-danger btn-sm"
-												>
-													Delete
-												</button>
-											</RestfulForm>
+									</p>
+									<p class="list-item-text">
+										{client.company || 'Independent client'}
+									</p>
+									<div class="meta-row">
+										<strong>{client.email}</strong>
+										<span class="meta-dot" />
+										<span>Client since {formatDate(client.createdAt)}</span>
+									</div>
+								</div>
+								<div class="list-item-side">
+									<div class="value-block">
+										<div class="value-label">Rate</div>
+										<div class="value-main">
+											{formatCurrency(client.hourlyRate)}/hr
 										</div>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
+									</div>
+									<div class="inline-actions">
+										<a
+											href={routes.clients.edit.href({ clientId: client.id })}
+											class="btn btn-secondary btn-sm"
+										>
+											Edit
+										</a>
+										<RestfulForm
+											method="DELETE"
+											action={routes.clients.destroy.href({
+												clientId: client.id,
+											})}
+											class="form-contents"
+										>
+											<button
+												type="submit"
+												class="btn btn-danger btn-sm"
+											>
+												Delete
+											</button>
+										</RestfulForm>
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				</SectionCard>
 			)}
 		</Layout>
 	);
+};

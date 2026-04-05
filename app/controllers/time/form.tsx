@@ -1,8 +1,8 @@
-import { css } from 'remix/component';
-
 import type { Client, Project, TimeEntry } from '../../data/schema.ts';
+import { routes } from '../../routes.ts';
 import { Layout } from '../../ui/Layout.tsx';
 import { RestfulForm } from '../../ui/RestfulForm.tsx';
+import { PageHeader } from '../../ui/Screen.tsx';
 
 export interface TimeEntryFormPageProps {
 	action: string;
@@ -12,9 +12,8 @@ export interface TimeEntryFormPageProps {
 	defaultProjectId?: number;
 }
 
-export const TimeEntryFormPage =
-	() =>
-	({
+export const TimeEntryFormPage = () => {
+	return ({
 		action,
 		method = 'POST',
 		entry,
@@ -32,32 +31,18 @@ export const TimeEntryFormPage =
 				title={entry ? 'Edit Time Entry' : 'Log Time'}
 				activeNav="time"
 			>
-				<div mix={css({ marginBottom: '1.5rem' })}>
-					<h1 mix={css({ margin: 0, fontSize: '1.5rem', fontWeight: 700 })}>
-						{entry ? 'Edit Time Entry' : 'Log Time'}
-					</h1>
-				</div>
+				<PageHeader
+					eyebrow="Time"
+					title={entry ? 'Edit time entry' : 'Log time'}
+					subtitle="Record exactly what you worked on, when it started, and whether it should be billable."
+				/>
 
-				<div
-					mix={css({
-						background: '#1a1a1a',
-						borderRadius: '8px',
-						padding: '1.5rem',
-						border: '1px solid #2a2a2a',
-						maxWidth: '560px',
-					})}
-				>
+				<div class="form-card">
 					<RestfulForm
 						method={method}
 						action={action}
 					>
-						<div
-							mix={css({
-								display: 'flex',
-								flexDirection: 'column',
-								gap: '1rem',
-							})}
-						>
+						<div class="form-grid">
 							<div class="form-group">
 								<label for="projectId">Project</label>
 								<select
@@ -82,7 +67,7 @@ export const TimeEntryFormPage =
 							</div>
 
 							<div class="form-group">
-								<label for="description">Description (optional)</label>
+								<label for="description">Work note</label>
 								<input
 									type="text"
 									id="description"
@@ -92,15 +77,9 @@ export const TimeEntryFormPage =
 								/>
 							</div>
 
-							<div
-								mix={css({
-									display: 'grid',
-									gridTemplateColumns: '1fr 1fr',
-									gap: '1rem',
-								})}
-							>
+							<div class="field-grid">
 								<div class="form-group">
-									<label for="startedAt">Start Time</label>
+									<label for="startedAt">Start time</label>
 									<input
 										type="datetime-local"
 										id="startedAt"
@@ -115,58 +94,52 @@ export const TimeEntryFormPage =
 								</div>
 
 								<div class="form-group">
-									<label for="endedAt">End Time</label>
+									<label for="endedAt">End time</label>
 									<input
 										type="datetime-local"
 										id="endedAt"
 										name="endedAt"
 										value={entry?.endedAt ? toDatetimeLocal(entry.endedAt) : ''}
 									/>
+									<div class="field-hint">
+										Leave this blank if the timer is still running.
+									</div>
 								</div>
 							</div>
 
-							<div class="form-group">
-								<label
-									mix={css({
-										display: 'flex',
-										alignItems: 'center',
-										gap: '0.5rem',
-										cursor: 'pointer',
-									})}
-								>
-									<input
-										type="checkbox"
-										name="billable"
-										value="true"
-										checked={entry ? entry.billable : true}
-									/>
-									Billable
-								</label>
-							</div>
-						</div>
+							<label class="checkbox-card">
+								<input
+									type="checkbox"
+									name="billable"
+									value="true"
+									checked={entry ? entry.billable : true}
+								/>
+								<span class="checkbox-copy">
+									<strong>Billable entry</strong>
+									<span>
+										Include this time when you prepare invoices later.
+									</span>
+								</span>
+							</label>
 
-						<div
-							mix={css({
-								marginTop: '1.5rem',
-								display: 'flex',
-								gap: '0.75rem',
-							})}
-						>
-							<button
-								type="submit"
-								class="btn btn-primary"
-							>
-								{entry ? 'Update Entry' : 'Save Entry'}
-							</button>
-							<a
-								href="/time"
-								class="btn btn-secondary"
-							>
-								Cancel
-							</a>
+							<div class="form-actions">
+								<button
+									type="submit"
+									class="btn btn-primary"
+								>
+									{entry ? 'Save changes' : 'Save entry'}
+								</button>
+								<a
+									href={routes.time.index.href()}
+									class="btn btn-secondary"
+								>
+									Cancel
+								</a>
+							</div>
 						</div>
 					</RestfulForm>
 				</div>
 			</Layout>
 		);
 	};
+};
