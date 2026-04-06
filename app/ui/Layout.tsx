@@ -11,39 +11,41 @@ export interface LayoutProps {
 }
 
 export const Layout = () => {
-	return ({ title, activeNav, children }: LayoutProps) => (
-		<Document title={title}>
-			<div class="app-shell">
-				<header class="app-header">
-					<div class="app-header-inner">
-						<AppLink
-							href={routes.home.href()}
-							class="brand"
-						>
-							<div class="brand-mark">Freelance Tracker</div>
-							<div class="brand-copy">Internal dashboard</div>
-						</AppLink>
+	return ({ title, activeNav, children }: LayoutProps) => {
+		return (
+			<Document title={title}>
+				<div class="app-shell">
+					<header class="app-header">
+						<div class="app-header-inner">
+							<AppLink
+								href={routes.home.href()}
+								class="brand"
+							>
+								<span class="brand-mark">Freelance Tracker</span>
+								<span class="brand-copy">Internal dashboard</span>
+							</AppLink>
 
-						<nav class="app-nav">
-							{navItems.map(({ href, label, id }) => (
-								<AppLink
-									href={href}
-									class={`nav-link${activeNav === id ? ' nav-link-active' : ''}`}
-									ariaCurrent={activeNav === id ? 'page' : undefined}
-								>
-									{label}
-								</AppLink>
-							))}
-						</nav>
-					</div>
-				</header>
+							<nav class="app-nav">
+								{navItems.map(({ href, label, id }) => (
+									<AppLink
+										href={href}
+										class={`nav-link${activeNav === id ? ' nav-link-active' : ''}`}
+										ariaCurrent={activeNav === id ? 'page' : undefined}
+									>
+										{label}
+									</AppLink>
+								))}
+							</nav>
+						</div>
+					</header>
 
-				<main class="app-main">
-					<div class="page-stack">{children}</div>
-				</main>
-			</div>
-		</Document>
-	);
+					<main class="app-main">
+						<div class="page-stack">{children}</div>
+					</main>
+				</div>
+			</Document>
+		);
+	};
 };
 
 const navItems = [

@@ -48,7 +48,7 @@ export const ProjectsIndexPage = () => {
 						{projects.map((project) => (
 							<div class="list-item">
 								<div class="list-item-primary">
-									<p class="list-item-title">
+									<div class="list-item-title">
 										<AppLink
 											href={routes.projects.show.href({
 												projectId: project.id,
@@ -56,7 +56,7 @@ export const ProjectsIndexPage = () => {
 										>
 											{project.name}
 										</AppLink>
-									</p>
+									</div>
 									<p class="list-item-text">
 										{project.description || 'No project summary yet.'}
 									</p>

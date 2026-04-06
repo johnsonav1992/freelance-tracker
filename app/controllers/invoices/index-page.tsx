@@ -52,7 +52,7 @@ export const InvoicesIndexPage = () => {
 						{invoices.map((invoice) => (
 							<div class="list-item">
 								<div class="list-item-primary">
-									<p class="list-item-title">
+									<div class="list-item-title">
 										<AppLink
 											href={routes.invoices.show.href({
 												invoiceId: invoice.id,
@@ -60,7 +60,7 @@ export const InvoicesIndexPage = () => {
 										>
 											<span class="mono">{invoice.number}</span>
 										</AppLink>
-									</p>
+									</div>
 									<p class="list-item-text">{invoice.client.name}</p>
 									<div class="meta-row">
 										<span class={`badge badge-${invoice.status}`}>

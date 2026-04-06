@@ -1,3 +1,4 @@
+import { getContext } from 'remix/async-context-middleware';
 import * as s from 'remix/data-schema';
 import * as f from 'remix/data-schema/form-data';
 import { Database } from 'remix/data-table';
@@ -11,13 +12,14 @@ import {
 	projectTasks,
 	timeEntries,
 } from '../../data/schema.ts';
-import { routes } from '../../routes.ts';
+import { frames, routes } from '../../routes.ts';
 import { parseId } from '../../utils/ids.ts';
 import { render } from '../../utils/render.tsx';
 import { ProjectFormPage } from './form.tsx';
 import { ProjectsIndexPage } from './index-page.tsx';
 import { ProjectShowPage } from './show-page.tsx';
 import { ProjectTaskFormPage } from './task-form.tsx';
+import type { ProjectWorkspaceTab } from './workspace.tsx';
 
 const projectSchema = f.object({
 	clientId: f.field(s.defaulted(s.string(), '')),
@@ -104,42 +106,7 @@ export default {
 		async show({ get, params }) {
 			const db = get(Database);
 			const projectId = parseId(params.projectId);
-			const project =
-				projectId === undefined
-					? undefined
-					: await db.find(projects, projectId);
-
-			if (!project) {
-				return new Response('Project not found', { status: 404 });
-			}
-
-			const [client, entries, tasks] = await Promise.all([
-				db.find(clients, project.clientId),
-				db.findMany(timeEntries, {
-					where: { projectId: project.id },
-					orderBy: ['startedAt', 'desc'],
-				}),
-				db.findMany(projectTasks, {
-					where: { projectId: project.id },
-					orderBy: ['sortOrder', 'asc'],
-				}),
-			]);
-
-			if (!client) {
-				return new Response('Client not found', { status: 404 });
-			}
-
-			const runningEntry = entries.find((e) => e.endedAt === null) ?? null;
-
-			return render(
-				<ProjectShowPage
-					project={project}
-					client={client}
-					entries={entries}
-					tasks={tasks}
-					runningEntry={runningEntry}
-				/>,
-			);
+			return renderProjectWorkspacePage(db, projectId, 'overview');
 		},
 
 		async edit({ get, params }) {
@@ -275,7 +242,9 @@ export default {
 						updatedAt: now,
 					});
 
-					return redirect(routes.projects.show.href({ projectId: project.id }));
+					return redirect(
+						routes.projects.workspace.tasks.href({ projectId: project.id }),
+					);
 				},
 
 				async edit({ get, params }) {
@@ -327,7 +296,9 @@ export default {
 						updatedAt: Date.now(),
 					});
 
-					return redirect(routes.projects.show.href({ projectId: project.id }));
+					return redirect(
+						routes.projects.workspace.tasks.href({ projectId: project.id }),
+					);
 				},
 
 				async destroy({ get, params }) {
@@ -345,9 +316,94 @@ export default {
 
 					await db.delete(projectTasks, task.id);
 
-					return redirect(routes.projects.show.href({ projectId: project.id }));
+					return redirect(
+						routes.projects.workspace.tasks.href({ projectId: project.id }),
+					);
+				},
+			},
+		},
+
+		workspace: {
+			actions: {
+				async tasks({ get, params }) {
+					const db = get(Database);
+					const projectId = parseId(params.projectId);
+					return renderProjectWorkspacePage(db, projectId, 'tasks');
+				},
+
+				async time({ get, params }) {
+					const db = get(Database);
+					const projectId = parseId(params.projectId);
+					return renderProjectWorkspacePage(db, projectId, 'time');
 				},
 			},
 		},
 	},
 } satisfies Controller<typeof routes.projects>;
+
+const renderProjectWorkspacePage = async (
+	db: Database,
+	projectId: number | undefined,
+	activeTab: ProjectWorkspaceTab,
+) => {
+	const data = await loadProjectWorkspaceData(db, projectId);
+
+	if (data instanceof Response) {
+		return data;
+	}
+
+	const { project, client, entries, tasks, runningEntry } = data;
+
+	return render(
+		<ProjectShowPage
+			project={project}
+			client={client}
+			entries={entries}
+			tasks={tasks}
+			runningEntry={runningEntry}
+			activeTab={activeTab}
+			frameOnly={isProjectFrameRequest()}
+			workspaceSrc={getContext().request.url}
+		/>,
+	);
+};
+
+const loadProjectWorkspaceData = async (
+	db: Database,
+	projectId: number | undefined,
+) => {
+	const project =
+		projectId === undefined ? undefined : await db.find(projects, projectId);
+
+	if (!project) {
+		return new Response('Project not found', { status: 404 });
+	}
+
+	const [client, entries, tasks] = await Promise.all([
+		db.find(clients, project.clientId),
+		db.findMany(timeEntries, {
+			where: { projectId: project.id },
+			orderBy: ['startedAt', 'desc'],
+		}),
+		db.findMany(projectTasks, {
+			where: { projectId: project.id },
+			orderBy: ['sortOrder', 'asc'],
+		}),
+	]);
+
+	if (!client) {
+		return new Response('Client not found', { status: 404 });
+	}
+
+	return {
+		project,
+		client,
+		entries,
+		tasks,
+		runningEntry: entries.find((entry) => entry.endedAt === null) ?? null,
+	};
+};
+
+const isProjectFrameRequest = () => {
+	return getContext().request.headers.get('x-remix-target') === frames.project;
+};

@@ -48,13 +48,13 @@ export const ClientsIndexPage = () => {
 						{clients.map((client) => (
 							<div class="list-item">
 								<div class="list-item-primary">
-									<p class="list-item-title">
+									<div class="list-item-title">
 										<AppLink
 											href={routes.clients.show.href({ clientId: client.id })}
 										>
 											{client.name}
 										</AppLink>
-									</p>
+									</div>
 									<p class="list-item-text">
 										{client.company || 'Independent client'}
 									</p>

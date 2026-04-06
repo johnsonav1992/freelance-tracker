@@ -7,6 +7,10 @@ import {
 	route,
 } from 'remix/fetch-router/routes';
 
+export const frames = {
+	project: 'project-workspace',
+} as const;
+
 export const routes = route({
 	assets: '/assets/*path',
 
@@ -16,6 +20,10 @@ export const routes = route({
 
 	projects: {
 		...resources('projects', { param: 'projectId' }),
+		workspace: route('projects/:projectId', {
+			tasks: get('/tasks'),
+			time: get('/time'),
+		}),
 		tasks: resources('projects/:projectId/tasks', {
 			param: 'taskId',
 			only: ['new', 'create', 'edit', 'update', 'destroy'],

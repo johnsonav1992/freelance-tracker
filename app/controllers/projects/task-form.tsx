@@ -24,7 +24,7 @@ export const ProjectTaskFormPage = () => {
 			activeNav="projects"
 		>
 			<AppLink
-				href={routes.projects.show.href({ projectId: project.id })}
+				href={routes.projects.workspace.tasks.href({ projectId: project.id })}
 				class="breadcrumb"
 			>
 				← Back to project
@@ -87,7 +87,9 @@ export const ProjectTaskFormPage = () => {
 								{task ? 'Save changes' : 'Create task'}
 							</button>
 							<AppLink
-								href={routes.projects.show.href({ projectId: project.id })}
+								href={routes.projects.workspace.tasks.href({
+									projectId: project.id,
+								})}
 								class="btn btn-secondary"
 							>
 								Cancel

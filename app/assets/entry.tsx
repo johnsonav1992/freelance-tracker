@@ -13,9 +13,16 @@ const app = run({
 			? R
 			: never;
 	},
-	async resolveFrame(src, signal) {
+	async resolveFrame(src, signal, target) {
+		const headers = new Headers();
+		headers.set('accept', 'text/html');
+		headers.set('x-remix-frame', 'true');
+		if (target) {
+			headers.set('x-remix-target', target);
+		}
+
 		const response = await fetch(src, {
-			headers: { accept: 'text/html' },
+			headers,
 			signal,
 		});
 		if (!response.ok) {
@@ -30,5 +37,6 @@ app.ready().catch((error: unknown) => {
 	console.error('App boot failed:', error);
 });
 
+export { AppLink } from '../ui/AppLink.tsx';
 export { RestfulForm } from '../ui/RestfulForm.tsx';
 export { Timer } from './timer.tsx';

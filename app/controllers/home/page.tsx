@@ -149,7 +149,7 @@ export const DashboardPage = () => {
 							{recentInvoices.map((invoice) => (
 								<div class="list-item">
 									<div class="list-item-primary">
-										<p class="list-item-title">
+										<div class="list-item-title">
 											<AppLink
 												href={routes.invoices.show.href({
 													invoiceId: invoice.id,
@@ -157,7 +157,7 @@ export const DashboardPage = () => {
 											>
 												<span class="mono">{invoice.number}</span>
 											</AppLink>
-										</p>
+										</div>
 										<div class="meta-row">
 											<strong>{invoice.client.name}</strong>
 										</div>
@@ -219,13 +219,13 @@ const ActionRow = () => {
 			href={href}
 			class="list-item"
 		>
-			<div class="list-item-primary">
+			<span class="list-item-primary">
 				<p class="list-item-title">{title}</p>
 				<p class="list-item-text">{copy}</p>
-			</div>
-			<div class="list-item-side">
+			</span>
+			<span class="list-item-side">
 				<span class="meta-chip meta-chip-accent">Open</span>
-			</div>
+			</span>
 		</AppLink>
 	);
 };

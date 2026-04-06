@@ -78,7 +78,7 @@ export const TimeIndexPage = () => {
 							return (
 								<div class="list-item">
 									<div class="list-item-primary">
-										<p class="list-item-title">
+										<div class="list-item-title">
 											<AppLink
 												href={routes.projects.show.href({
 													projectId: entry.project.id,
@@ -86,7 +86,7 @@ export const TimeIndexPage = () => {
 											>
 												{entry.project.name}
 											</AppLink>
-										</p>
+										</div>
 										<p class="list-item-text">
 											{entry.description || 'No work note added.'}
 										</p>

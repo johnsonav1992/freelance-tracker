@@ -124,7 +124,7 @@ export const ClientShowPage = () => {
 						{projects.map((project) => (
 							<div class="list-item">
 								<div class="list-item-primary">
-									<p class="list-item-title">
+									<div class="list-item-title">
 										<AppLink
 											href={routes.projects.show.href({
 												projectId: project.id,
@@ -132,7 +132,7 @@ export const ClientShowPage = () => {
 										>
 											{project.name}
 										</AppLink>
-									</p>
+									</div>
 									<p class="list-item-text">
 										{project.description || 'No description.'}
 									</p>

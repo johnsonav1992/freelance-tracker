@@ -87,6 +87,22 @@ body::before {
 a { color: var(--accent); text-decoration: none; }
 a:hover { color: var(--accent-strong); }
 form { margin: 0; }
+.app-link {
+	cursor: pointer;
+}
+.app-link-inline {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	color: inherit;
+	font: inherit;
+	text-align: inherit;
+}
+.app-link:focus-visible {
+	outline: 2px solid rgba(96, 165, 250, 0.65);
+	outline-offset: 3px;
+}
 button, input, select, textarea { font: inherit; }
 button, .btn {
 	cursor: pointer;
@@ -201,6 +217,13 @@ label {
 	gap: 0.1rem;
 	min-width: 0;
 }
+.brand.app-link {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	text-align: left;
+}
 .brand-mark {
 	font-size: 1.05rem;
 	font-weight: 800;
@@ -230,6 +253,38 @@ label {
 	background: #161f2a;
 	color: var(--ink);
 	border: 1px solid rgba(96, 165, 250, 0.2);
+}
+.project-workspace {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+.workspace-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.6rem;
+	padding-bottom: 0.3rem;
+	border-bottom: 1px solid var(--line);
+}
+.workspace-tab {
+	padding: 0.6rem 0.9rem;
+	border-radius: 10px;
+	color: var(--muted-strong);
+	font-size: 0.88rem;
+	font-weight: 700;
+}
+.workspace-tab:hover {
+	background: #151c25;
+}
+.workspace-tab-active {
+	background: #161f2a;
+	color: var(--ink);
+	border: 1px solid rgba(96, 165, 250, 0.2);
+}
+.workspace-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
 }
 .app-main {
 	max-width: 1240px;
@@ -400,6 +455,10 @@ label {
 	border: 1px solid var(--line);
 	border-radius: 12px;
 }
+.list-item.app-link {
+	width: 100%;
+	text-align: left;
+}
 .list-item-primary { flex: 1; min-width: 0; }
 .list-item-title {
 	margin: 0;
@@ -408,8 +467,8 @@ label {
 	line-height: 1.35;
 	letter-spacing: -0.02em;
 }
-.list-item-title a { color: var(--ink); }
-.list-item-title a:hover { color: var(--accent-strong); }
+.list-item-title .app-link { color: var(--ink); }
+.list-item-title .app-link:hover { color: var(--accent-strong); }
 .list-item-text {
 	margin: 0.35rem 0 0;
 	font-size: 0.92rem;
@@ -642,6 +701,12 @@ tbody tr:last-child td { border-bottom: none; }
 	font-size: 0.84rem;
 	font-weight: 700;
 	color: var(--muted);
+}
+.breadcrumb.app-link {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
 }
 .breadcrumb:hover { color: var(--accent-strong); }
 @media (max-width: 960px) {
